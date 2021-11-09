@@ -1,0 +1,95 @@
+{
+    "manifestVersion": 2,
+    "installedAssets": [
+        {
+            "name": "Debugging Essentials",
+            "id": "170773",
+            "versionId": "1.18",
+            "versionNumber": 576798
+        },
+        {
+            "name": "Csharp Wizard",
+            "id": "104887",
+            "versionId": "1.4",
+            "versionNumber": 484477
+        },
+        {
+            "name": "POLYGON - Prototype Pack",
+            "id": "137126",
+            "versionId": "1.1",
+            "versionNumber": 502768
+        },
+        {
+            "name": "Script Inspector 3",
+            "id": "3535",
+            "versionId": "3.0.29",
+            "versionNumber": 617587
+        },
+        {
+            "name": "Mountain Environment - Dynamic Nature",
+            "id": "191851",
+            "versionId": "1.0.2",
+            "versionNumber": 602009
+        },
+        {
+            "name": "MapMagic 2",
+            "id": "165180",
+            "versionId": "2.1.3",
+            "versionNumber": 604292
+        },
+        {
+            "name": "MapMagic 2 Biomes and Functions",
+            "id": "165418",
+            "versionId": "2.1.3",
+            "versionNumber": 604288
+        },
+        {
+            "name": "MapMagic 2 Objects",
+            "id": "165181",
+            "versionId": "2.1.3",
+            "versionNumber": 603301
+        },
+        {
+            "name": "MapMagic 2 Splines (Beta)",
+            "id": "165419",
+            "versionId": "2.1.3",
+            "versionNumber": 603295
+        },
+        {
+            "name": "Pegasus",
+            "id": "65397",
+            "versionId": "2.5.3",
+            "versionNumber": 440119
+        },
+        {
+            "name": "Fullscreen Editor",
+            "id": "69534",
+            "versionId": "2.2.4",
+            "versionNumber": 617922
+        },
+        {
+            "name": "Polarith AI Pro | Movement with 3D Sensors",
+            "id": "71465",
+            "versionId": "1.7.1",
+            "versionNumber": 583275
+        },
+        {
+            "name": "Sensor Toolkit",
+            "id": "88036",
+            "versionId": "1.6.3",
+            "versionNumber": 555335
+        },
+        {
+            "name": "Forest Environment - Dynamic Nature",
+            "id": "150668",
+            "versionId": "1.6.5",
+            "versionNumber": 582693
+        },
+        {
+            "name": "Tropical Forest Pack",
+            "id": "49391",
+            "versionId": "1.3.1",
+            "versionNumber": 481238
+        }
+    ]
+}

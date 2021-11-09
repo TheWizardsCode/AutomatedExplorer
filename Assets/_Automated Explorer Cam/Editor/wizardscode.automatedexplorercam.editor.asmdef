@@ -1,0 +1,22 @@
+{
+    "name": "wizardscode.automatedexplorercam.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:665244ad61e0b86429b7615822052f5d",
+        "GUID:4307f53044263cf4b835bd812fc161a4",
+        "GUID:975aa331ba8bd7e4c9a4dd727e2b399a",
+        "GUID:e32d073b215186e44a11fd9e97cf76aa",
+        "GUID:29d2673bee07eaf4ca9229e60212baed"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
