@@ -47,11 +47,14 @@ namespace WizardsCode.AI
             if (m_RandomizeStartingPosition)
             {
                 WaypointSensor.Pulse();
-                WayPoint start = WaypointSensor.DetectedObjects[Random.Range(0, WaypointSensor.DetectedObjects.Count)].GetComponent<WayPoint>();
-                if (start)
+                if (WaypointSensor.DetectedObjects.Count > 0)
                 {
-                    transform.position = start.transform.position;
-                    transform.rotation = start.transform.rotation;
+                    WayPoint start = WaypointSensor.DetectedObjects[Random.Range(0, WaypointSensor.DetectedObjects.Count)].GetComponent<WayPoint>();
+                    if (start)
+                    {
+                        transform.position = start.transform.position;
+                        transform.rotation = start.transform.rotation;
+                    }
                 }
             }
 
@@ -104,12 +107,13 @@ namespace WizardsCode.AI
         {
             if (currentWaypoint != null && IsStuck)
             {
-                OnWatpointArrival();
+                OnWaypointArrival();
 
-                Vector3 pos = -transform.forward * Random.Range(2.5f, 4.5f);
+                Vector3 pos = -transform.forward * Random.Range(Steering.StoppingDistance * 2.5f, Steering.StoppingDistance * 3.5f);
                 pos += transform.right * Random.Range(-0.5f, -0.5f);
                 pos += transform.up * Random.Range(0.5f, 1f);
                 GameObject go = Instantiate(waypointPrefab.gameObject, transform.position + pos, Quaternion.identity);
+                go.name = "Waypoint to Get out of Stuck State";
                 currentWaypoint = go.GetComponent<WayPoint>();
                 oldPosition = transform.position;
                 timeToStuck = stuckDuration;
@@ -120,10 +124,10 @@ namespace WizardsCode.AI
             if (currentWaypoint == null)
             {
                 SelectNewWaypoint();
-            }
+            } 
             else if (WaypoinArrivalSensor.IsDetected(currentWaypoint.gameObject))
             {
-                OnWatpointArrival();
+                OnWaypointArrival();
             }
         }
 
@@ -135,7 +139,7 @@ namespace WizardsCode.AI
         /// 
         /// Optionally take a photo with the PhotoSession system.
         /// </summary>
-        private void OnWatpointArrival()
+        private void OnWaypointArrival()
         {
             if (currentWaypoint.reEnableWaitTime == 0)
             {

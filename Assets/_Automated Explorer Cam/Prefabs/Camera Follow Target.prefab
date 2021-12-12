@@ -52,14 +52,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 5
+  Length: 10
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -128,10 +128,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -196,14 +196,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 5
+  Length: 10
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -268,14 +268,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 5
+  Length: 10
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -340,14 +340,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 3
+  Length: 5
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -412,14 +412,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 5
+  Length: 10
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -484,14 +484,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 5
+  Length: 10
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -556,14 +556,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 5
+  Length: 10
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -628,14 +628,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 5
+  Length: 10
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -700,14 +700,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 5
+  Length: 10
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -772,14 +772,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 5
+  Length: 10
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -844,14 +844,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 3
+  Length: 5
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -924,7 +924,7 @@ MonoBehaviour:
   TestLOSTargetsOnly: 0
   NumberOfRays: 1
   MinimumVisibility: 0.5
-  SensorRange: 500
+  SensorRange: 200
   DetectsOnLayers:
     serializedVersion: 2
     m_Bits: 2147483648
@@ -1084,7 +1084,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   IgnoreList: []
   AvoidanceSensitivity: 1
-  MaxAvoidanceLength: 1
+  MaxAvoidanceLength: 2
   YAxis: 1
   RotateTowardsTarget: 1
   RB: {fileID: 5401098}
@@ -1097,9 +1097,9 @@ MonoBehaviour:
   StoppingDistance: 1
   DestinationTransform: {fileID: 0}
   FaceTowardsTransform: {fileID: 0}
-  m_MaintainHeight: 1
+  m_MaintainHeight: 0
   minHeight: 1.5
-  maxHeight: 5
+  maxHeight: 2
   optimalHeight: 2
 --- !u!1 &184980
 GameObject:
@@ -1153,14 +1153,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 3
+  Length: 5
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -1313,14 +1313,14 @@ MonoBehaviour:
   OnLostDetection:
     m_PersistentCalls:
       m_Calls: []
-  Length: 5
+  Length: 10
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 0
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0

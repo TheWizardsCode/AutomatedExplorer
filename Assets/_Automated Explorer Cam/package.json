@@ -2,7 +2,6 @@
 	"name":"wizardscode.explorercam", 
 	"displayName":"Wizards Code - Automated Explorer Cam", 
 	"dependencies":{
-		"org.wizardscode.devlogger": "file:E:/WizardsCode/DevLogger-Dev",
 		"com.unity.cinemachine":"2.6.10"
 	}, 
 	"version":"1.0.0"

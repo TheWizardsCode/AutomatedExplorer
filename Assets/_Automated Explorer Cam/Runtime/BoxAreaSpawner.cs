@@ -15,6 +15,9 @@ namespace WizardsCode.Spawning
         public float SizeY = 10f;
         public float SizeZ = 10f;
 
+        [SerializeField, Tooltip("The maximum height above the terrain to spawn waypoints.")]
+        public float maxHeight = 7;
+
         [Header("Obstruction")]
         public float ClearRadius = 1.8f;
         public LayerMask ObstructingLayers;
@@ -122,6 +125,10 @@ namespace WizardsCode.Spawning
                 if (terrainHeight + clearance > pos.y)
                 {
                     pos.y = terrain.transform.position.y + terrainHeight + clearance;
+                }
+                if (pos.y - terrainHeight > maxHeight)
+                {
+                    pos.y = Random.Range(terrainHeight + clearance, terrainHeight + maxHeight);
                 }
             }
 

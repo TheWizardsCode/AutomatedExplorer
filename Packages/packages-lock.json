@@ -122,7 +122,6 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "org.wizardscode.devlogger": "file:E:/WizardsCode/DevLogger-Dev",
         "com.unity.cinemachine": "2.6.10"
       }
     },
