@@ -2,7 +2,8 @@
 	"name":"wizardscode.explorercam", 
 	"displayName":"Wizards Code - Automated Explorer Cam", 
 	"dependencies":{
-		"com.unity.cinemachine":"2.6.10"
+		"com.unity.cinemachine":"2.6.10",
+		"com.rowlan.photosession":"0.9.3"
 	}, 
-	"version":"1.0.0"
+	"version":"0.1.0"
 }
