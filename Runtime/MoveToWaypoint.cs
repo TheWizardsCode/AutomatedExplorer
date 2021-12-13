@@ -162,13 +162,18 @@ namespace WizardsCode.AI
 
             if (m_TakePhotoOnArrival)
             {
+#if PHOTOSESSION_PRESENT
                 if (photoSession)
                 {
                     StartCoroutine(photoSession.CaptureScreenshot());
-                } else
+                }
+                else
                 {
                     Debug.LogWarning("Configured to take a photo when reaching a waypoint, but there is no PhotoSession in the scene.");
                 }
+#else
+                Debug.LogWarning("You have configured the camera to take a photo on arrival at the waypoint. However, PhotoSession is not installed. See https://github.com/TheWizardsCode/AutomatedExplorer");
+#endif
             }
         }
 
