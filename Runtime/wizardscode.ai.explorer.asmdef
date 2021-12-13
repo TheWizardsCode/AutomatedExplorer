@@ -15,7 +15,7 @@
     "versionDefines": [
         {
             "name": "com.rowlan.photosession",
-            "expression": "",
+            "expression": "0.9.3",
             "define": "PHOTOSESSION_PRESENT"
         }
     ],
