@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using SensorToolkit;
+#if PHOTOSESSION_PRESENT
 using Rowlan.PhotoSession;
+#endif
+
 
 namespace WizardsCode.AI
 {
@@ -40,7 +43,9 @@ namespace WizardsCode.AI
         Vector3 oldPosition = Vector3.zero;
         float timeToStuck;
         float sqrStuckTolerance;
+#if PHOTOSESSION_PRESENT
         PhotoSession photoSession;
+#endif
 
         private void Start()
         {
@@ -60,7 +65,10 @@ namespace WizardsCode.AI
 
             timeToStuck = stuckDuration;
             sqrStuckTolerance = stuckTolerance * stuckTolerance;
+
+#if PHOTOSESSION_PRESENT
             photoSession = GameObject.FindObjectOfType<PhotoSession>();
+#endif
         }
 
         WayPoint currentWaypoint

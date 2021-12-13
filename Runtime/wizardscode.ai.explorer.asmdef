@@ -2,8 +2,8 @@
     "name": "wizardscode.ai.explorer",
     "rootNamespace": "",
     "references": [
-        "GUID:c1d2a71869a2663408c3553b291a6d8c",
-        "GUID:b28c03482b579d445aa281177909e20e"
+        "sensortoolkit",
+        "PhotoSession.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -12,6 +12,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.rowlan.photosession",
+            "expression": "",
+            "define": "PHOTOSESSION_PRESENT"
+        }
+    ],
     "noEngineReferences": false
 }
