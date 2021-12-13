@@ -3,11 +3,13 @@
     "rootNamespace": "",
     "references": [
         "wizardscode.ai.explorer",
-        "sensortoolkit"
+        "sensortoolkit",
+        "Cinemachine"
     ],
     "includePlatforms": [
         "Android",
         "CloudRendering",
+        "Editor",
         "GameCoreScarlett",
         "GameCoreXboxOne",
         "iOS",
