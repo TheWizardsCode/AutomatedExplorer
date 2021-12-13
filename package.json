@@ -2,7 +2,7 @@
 	"name":"wizardscode.explorercam", 
 	"displayName":"Wizards Code - Automated Explorer Cam", 
 	"dependencies":{
-		"com.unity.cinemachine":"2.6.10",
+		"com.unity.cinemachine":"2.6.10"
 	}, 
 	"version":"0.1.0"
 }
