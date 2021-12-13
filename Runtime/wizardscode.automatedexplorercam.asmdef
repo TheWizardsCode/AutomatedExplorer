@@ -1,8 +1,9 @@
 {
     "name": "wizardscode.automatedexplorercam",
+    "rootNamespace": "",
     "references": [
-        "GUID:975aa331ba8bd7e4c9a4dd727e2b399a",
-        "GUID:b28c03482b579d445aa281177909e20e"
+        "GUID:b28c03482b579d445aa281177909e20e",
+        "GUID:c1d2a71869a2663408c3553b291a6d8c"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
