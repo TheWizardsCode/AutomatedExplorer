@@ -2,9 +2,9 @@
     "name": "wizardscode.automatedexplorercam.editor",
     "rootNamespace": "",
     "references": [
-        "GUID:4307f53044263cf4b835bd812fc161a4",
-        "GUID:29d2673bee07eaf4ca9229e60212baed",
-        "GUID:c1d2a71869a2663408c3553b291a6d8c"
+        "Cinemachine",
+        "wizardscode.automatedexplorercam",
+        "sensortoolkit"
     ],
     "includePlatforms": [
         "Editor"

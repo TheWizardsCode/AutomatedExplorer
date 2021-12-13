@@ -2,8 +2,8 @@
     "name": "wizardscode.automatedexplorercam",
     "rootNamespace": "",
     "references": [
-        "GUID:b28c03482b579d445aa281177909e20e",
-        "GUID:c1d2a71869a2663408c3553b291a6d8c"
+        "PhotoSession.Runtime",
+        "sensortoolkit"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
