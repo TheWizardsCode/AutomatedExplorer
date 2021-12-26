@@ -47,11 +47,10 @@ If you want to automatically take photos whenever a waypoint is reached you will
 We are a big fan of enabling our users to improve the Automated Explorer Cam, so we would encourage you to use the source code, it's not much harder than using the latest release.
 
   1. Create a Unity project within which to do your camera dev work
-  1. Install Sensor toolike as described above
-  2. Add `Cinemachine` using the package manager
-  3. Fork the project on GitHub by clicking the icon in the top right
-  4. Clone the repo into your Unity projects Asset folder `git clone [YOUR_FORK_URL]`
-  5. In the project view select `Assets/DevTest PackageManifestConfig`
+  2. Install Sensor toolike as described above
+  3. Add `Cinemachine` using the package manager
+  4. Fork the project on GitHub by clicking the icon in the top right
+  5. Clone the repo into your Unity projects Asset folder `git clone [YOUR_FORK_URL]`
   6. Optionally install PhotoSession as described above
 
 This project is your main project and has the Unity test scenes etc. This is where you will do your testing of any major changes and ensure any pull requests you issue are correctly setup.  To make use of your local development code in another project follow the steps in the previous section, but rather than adding the package from a Git URL point to the copy on your local filesystem. You will then be able to edit the package code from within any of the projects that add the package in this way.
