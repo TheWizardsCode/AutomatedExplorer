@@ -2,6 +2,7 @@
 using System.Collections;
 using System;
 using Random = UnityEngine.Random;
+using System.Linq;
 
 namespace WizardsCode.Spawning
 {
@@ -120,39 +121,33 @@ namespace WizardsCode.Spawning
         private Vector3 AdjustHeight(Vector3 pos)
         {
             float clearance = (ClearRadius * 1.2f);
+            
             Terrain terrain = null;
             if (Terrain.activeTerrains.Length == 1)
             {
                 terrain = Terrain.activeTerrain;
             } else
             {
-                for (int i = 0; i < Terrain.activeTerrains.Length; i++)
+                terrain = Terrain.activeTerrains.OrderBy(x =>
                 {
-                    terrain = Terrain.activeTerrains[i];
-                    if ((terrain.transform.position.x >= 0 && pos.x >= terrain.transform.position.x && pos.x < terrain.transform.position.x + terrain.terrainData.size.x)
-                        || (terrain.transform.position.x <= 0 && pos.x >= terrain.transform.position.x - terrain.terrainData.size.x && pos.x < terrain.transform.position.x))
-                    {
-                        if ((terrain.transform.position.z >= 0 && pos.z >= terrain.transform.position.z && pos.z < terrain.transform.position.z + terrain.terrainData.size.z)
-                        || (terrain.transform.position.z <= 0 && pos.z >= terrain.transform.position.z - terrain.terrainData.size.z && pos.z < terrain.transform.position.z))
-                        {
-                            Debug.Log($"Terrain at {pos} is {terrain.name}");
-                            break;
-                        }
-                    }
-                    terrain = null;
-                }
-            }
+                    Vector3 terrainPosition = x.transform.position;
+                    Vector3 terrainSize = x.terrainData.size * 0.5f;
+                    Vector3 terrainCenter = new Vector3(terrainPosition.x + terrainSize.x, terrainPosition.y, terrainPosition.z + terrainSize.z);
+                    return Vector3.SqrMagnitude(terrainCenter - pos);
+                }).First();
+            }                           
 
             if (terrain != null)
             {
                 float terrainHeight = terrain.SampleHeight(pos);
+                
                 if (pos.y < terrainHeight + clearance)
                 {
                     pos.y = terrain.transform.position.y + terrainHeight + clearance;
                 }
                 if (pos.y - terrainHeight > maxHeight)
                 {
-                    pos.y = Random.Range(terrainHeight + clearance, terrainHeight + maxHeight);
+                    pos.y = terrain.transform.position.y + Random.Range(terrainHeight + clearance, terrainHeight + maxHeight);
                 }
             } else
             {
