@@ -27,13 +27,6 @@ namespace WizardsCode.AI
             " encourage it to return to this height.")]
         float optimalHeight = 2f;
 
-        private Terrain terrain;
-
-        private void Start()
-        {
-            terrain = Terrain.activeTerrain;
-        }
-
         void LateUpdate()
         {
             if (!m_MaintainHeight) return;
@@ -43,18 +36,13 @@ namespace WizardsCode.AI
 
             RaycastHit hit;
             float terrainHeight = 0;
-            if (terrain != null)
+            if (Physics.Raycast(RB.transform.position, Vector3.down, out hit, Mathf.Infinity))
             {
-                terrainHeight = terrain.SampleHeight(RB.transform.position);
+                terrainHeight = hit.distance;
             } else
             {
-                if (Physics.Raycast(RB.transform.position, Vector3.down, out hit, Mathf.Infinity))
-                {
-                    terrainHeight = hit.distance;
-                } else
-                {
-                    return;
-                }
+                Debug.LogWarning($"{name} has `Maintain Height` enabled but therre is no raycast hit below it. Relying on Steering Behaviours to keep things in order.");
+                return;
             }
 
             float height = RB.transform.position.y - terrainHeight;
