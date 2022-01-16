@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
+using Random = UnityEngine.Random;
 
 namespace WizardsCode.Spawning
 {
@@ -12,7 +14,7 @@ namespace WizardsCode.Spawning
         public int StartSpawnAmount;
 
         public float SizeX = 10f;
-        public float SizeY = 10f;
+        private float SizeY = 10f; // Height is only used in the visuals, the position of the spawned objects is controlled by maxHeight
         public float SizeZ = 10f;
 
         [SerializeField, Tooltip("The maximum height above the terrain to spawn waypoints.")]
@@ -101,7 +103,7 @@ namespace WizardsCode.Spawning
 
         Vector3 chooseLocation()
         {
-            Vector3 dimensions = new Vector3(SizeX / 2f, SizeY / 2f, SizeZ / 2f);
+            Vector3 dimensions = new Vector3(SizeX / 2f, maxHeight, SizeZ / 2f);
             Vector3 randNormalizedVector = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), Random.Range(-1f, 1f));
             Vector3 pos = Vector3.Scale(dimensions, randNormalizedVector) + transform.position;
 
@@ -118,11 +120,33 @@ namespace WizardsCode.Spawning
         private Vector3 AdjustHeight(Vector3 pos)
         {
             float clearance = (ClearRadius * 1.2f);
-            Terrain terrain = Terrain.activeTerrain;
+            Terrain terrain = null;
+            if (Terrain.activeTerrains.Length == 1)
+            {
+                terrain = Terrain.activeTerrain;
+            } else
+            {
+                for (int i = 0; i < Terrain.activeTerrains.Length; i++)
+                {
+                    terrain = Terrain.activeTerrains[i];
+                    if ((terrain.transform.position.x >= 0 && pos.x >= terrain.transform.position.x && pos.x < terrain.transform.position.x + terrain.terrainData.size.x)
+                        || (terrain.transform.position.x <= 0 && pos.x >= terrain.transform.position.x - terrain.terrainData.size.x && pos.x < terrain.transform.position.x))
+                    {
+                        if ((terrain.transform.position.z >= 0 && pos.z >= terrain.transform.position.z && pos.z < terrain.transform.position.z + terrain.terrainData.size.z)
+                        || (terrain.transform.position.z <= 0 && pos.z >= terrain.transform.position.z - terrain.terrainData.size.z && pos.z < terrain.transform.position.z))
+                        {
+                            Debug.Log($"Terrain at {pos} is {terrain.name}");
+                            break;
+                        }
+                    }
+                    terrain = null;
+                }
+            }
+
             if (terrain != null)
             {
-                float terrainHeight = Terrain.activeTerrain.SampleHeight(pos);
-                if (terrainHeight + clearance > pos.y)
+                float terrainHeight = terrain.SampleHeight(pos);
+                if (pos.y < terrainHeight + clearance)
                 {
                     pos.y = terrain.transform.position.y + terrainHeight + clearance;
                 }
@@ -130,6 +154,9 @@ namespace WizardsCode.Spawning
                 {
                     pos.y = Random.Range(terrainHeight + clearance, terrainHeight + maxHeight);
                 }
+            } else
+            {
+                Debug.LogError($"No terrain found for {pos}.");
             }
 
             return pos;

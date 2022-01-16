@@ -2,8 +2,8 @@
     "name": "wizardscode.ai.explorer",
     "rootNamespace": "",
     "references": [
-        "sensortoolkit",
-        "PhotoSession.Runtime"
+        "PhotoSession.Runtime",
+        "micosmo.sensortoolkit"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

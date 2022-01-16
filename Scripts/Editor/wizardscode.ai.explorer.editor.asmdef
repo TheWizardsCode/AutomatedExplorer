@@ -1,0 +1,20 @@
+{
+    "name": "wizardscode.ai.explorer.editor",
+    "rootNamespace": "",
+    "references": [
+        "wizardscode.ai.explorer",
+        "Cinemachine",
+        "micosmo.sensortoolkit"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -40,6 +40,7 @@ namespace WizardsCode.AI
         bool m_RandomizeStartingPosition = false;
 
         WayPoint m_currentWaypoint;
+        private const string stuckWaypointName = "Waypoint to Get out of Stuck State";
         Vector3 oldPosition = Vector3.zero;
         float timeToStuck;
         float sqrStuckTolerance;
@@ -121,7 +122,7 @@ namespace WizardsCode.AI
                 pos += transform.right * Random.Range(-0.5f, -0.5f);
                 pos += transform.up * Random.Range(0.5f, 1f);
                 GameObject go = Instantiate(waypointPrefab.gameObject, transform.position + pos, Quaternion.identity);
-                go.name = "Waypoint to Get out of Stuck State";
+                go.name = stuckWaypointName;
                 currentWaypoint = go.GetComponent<WayPoint>();
                 oldPosition = transform.position;
                 timeToStuck = stuckDuration;
@@ -149,6 +150,11 @@ namespace WizardsCode.AI
         /// </summary>
         private void OnWaypointArrival()
         {
+            //TODO if waypoint is an auto generated one to get out of a stuck space store the photo in a debugging space
+            /*
+            if (currentWaypoint.name.StartsWith(stuckWaypointName)) ...
+            */
+
             if (currentWaypoint.reEnableWaitTime == 0)
             {
                 Destroy(currentWaypoint.gameObject);
