@@ -32,6 +32,10 @@ namespace WizardsCode.AIEditor
         SerializedProperty randomizeSpeedOnStart;
         SerializedProperty animationController;
         SerializedProperty legacyAnimationController;
+        SerializedProperty randomizeX;
+        SerializedProperty randomizeY;
+        SerializedProperty randomizeZ;
+        SerializedProperty randomizationFrequency;
 
         CameraSteeringRig steeringRig;
 
@@ -59,9 +63,13 @@ namespace WizardsCode.AIEditor
             minHeight = serializedObject.FindProperty("minHeight");
             maxHeight = serializedObject.FindProperty("maxHeight");
             optimalHeight = serializedObject.FindProperty("optimalHeight");
-            randomizeSpeedOnStart = serializedObject.FindProperty("m_RandomizeSpeedOnStart");
+            randomizeSpeedOnStart = serializedObject.FindProperty("m_RandomizeSpeed");
             animationController = serializedObject.FindProperty("m_Animator");
             legacyAnimationController = serializedObject.FindProperty("m_LegacyAnimation");
+            randomizeX = serializedObject.FindProperty("m_RandomizeX");
+            randomizeY = serializedObject.FindProperty("m_RandomizeY");
+            randomizeZ = serializedObject.FindProperty("m_RandomizeZ");
+            randomizationFrequency = serializedObject.FindProperty("m_RandomizationFrequency");
         }
 
         public override void OnInspectorGUI()
@@ -99,6 +107,16 @@ namespace WizardsCode.AIEditor
                 {
                     EditorGUILayout.PropertyField(animationController);
                     EditorGUILayout.PropertyField(legacyAnimationController);
+                }
+
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Flight Randomization", EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(randomizeX);
+                EditorGUILayout.PropertyField(randomizeY);
+                EditorGUILayout.PropertyField(randomizeZ);
+                if (randomizeX.boolValue || randomizeY.boolValue || randomizeZ.boolValue)
+                {
+                    EditorGUILayout.PropertyField(randomizationFrequency);
                 }
 
                 EditorGUILayout.Space();

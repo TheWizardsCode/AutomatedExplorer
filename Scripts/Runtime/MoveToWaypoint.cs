@@ -114,7 +114,7 @@ namespace WizardsCode.AI
 
         void Update()
         {
-            if (currentWaypoint != null && IsStuck)
+            if (currentWaypoint && IsStuck)
             {
                 OnWaypointArrival();
 
@@ -130,7 +130,7 @@ namespace WizardsCode.AI
                 WaypointSensor.Pulse();
             }
 
-            if (currentWaypoint == null)
+            if (!currentWaypoint)
             {
                 SelectNewWaypoint();
             } 

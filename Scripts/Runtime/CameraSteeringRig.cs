@@ -28,16 +28,44 @@ namespace WizardsCode.AI
         float optimalHeight = 2f;
 
         [SerializeField, Tooltip("Randomize the speed of this AI by up to +/- 10% on startup.")]
-        bool m_RandomizeSpeedOnStart = false;
+        bool m_RandomizeSpeed = false;
         [SerializeField, Tooltip("The animation controller for updating speed accordingly.")]
         private Animator m_Animator;
         [SerializeField, Tooltip("If you model is using the legacy animation system all is not lost, set it here and we will do the rest.")]
         private Animation m_LegacyAnimation;
 
+        [SerializeField, Tooltip("Should forces be applied randomly in the x direction.")]
+        private bool m_RandomizeX = true;
+        [SerializeField, Tooltip("Should forces be applied randomly in the y direction.")]
+        private bool m_RandomizeY = true;
+        [SerializeField, Tooltip("Should forces be applied randomly in the z direction.")]
+        private bool m_RandomizeZ = true;
+        [SerializeField, Tooltip("Frequency of randomization force change in seconds. Each time the randomization force is changed it will be in the opposite direction to the last change, thus the change will not often push the object too far off course.")]
+        public float m_RandomizationFrequency = 3;
+
+        private Vector3 randomizationForce;
+        private float timeOFRandomization;
+        private float speedVariation;
+        private float originalMoveForce;
+        private float originalSpeed;
+
         private void Start()
         {
-            if (m_RandomizeSpeedOnStart) {
-                RandomizeSpeed();
+            originalMoveForce = MoveForce;
+
+            if (m_Animator)
+            {
+                originalSpeed = m_Animator.speed;
+            }
+            else if (m_LegacyAnimation)
+            {
+                Debug.LogWarning("You are randomizing speed with a legacy animator. This will work fine if all clips have the same speed. Otherwise they will be adjusted to an identical speed making some animations look off. This is a limitation of the curent code and is unlikely to be fixed given this is for legacy animations. Patches welcome.");
+                float speed = 0;
+                foreach (AnimationState state in m_LegacyAnimation)
+                {
+                    speed += state.speed;
+                }
+                originalSpeed = speed / m_LegacyAnimation.GetClipCount();
             }
         }
 
@@ -46,34 +74,82 @@ namespace WizardsCode.AI
         /// </summary>
         private void RandomizeSpeed()
         {
-            float variation = Random.Range(0.9f, 1.1f);
-            MoveForce *= variation;
+            speedVariation = MoveForce < originalMoveForce ? Random.Range(1f, 1.1f) : Random.Range(0.9f, 1f);
+            MoveForce = originalMoveForce * speedVariation;
 
             if (m_Animator)
             {
-                m_Animator.speed = m_Animator.speed * variation;
+                m_Animator.speed = originalSpeed * speedVariation;
             } else if (m_LegacyAnimation)
             {
                 foreach (AnimationState state in m_LegacyAnimation)
                 {
-                    state.speed *= variation;
+                    state.speed *= speedVariation;
                 }
             }
         }
 
         void LateUpdate()
         {
-            if (!m_MaintainHeight) return;
-                
             if (RB == null || RB.isKinematic || !IsSeeking) return;
 
+            if (m_MaintainHeight)
+            {
+                MaintainHeight();
+            }
 
+            if (timeOFRandomization <= Time.timeSinceLevelLoad)
+            {
+                CalculateRandomizationForce();
+                if (m_RandomizeSpeed)
+                {
+                    RandomizeSpeed();
+                }
+                timeOFRandomization = Time.timeSinceLevelLoad + m_RandomizationFrequency;
+            }
+
+            if (randomizationForce != Vector3.zero)
+            {
+                RB.AddForce(randomizationForce);
+            }
+        }
+
+        /// <summary>
+        /// Calculate a random force that will be added to the object to add variation to the flight.
+        /// </summary>
+        private void CalculateRandomizationForce()
+        {
+            if (!(m_RandomizeX || m_RandomizeX || m_RandomizeX)) return;
+
+            float force = MoveForce * 0.2f;
+            float x = 0;
+            float y = 0;
+            float z = 0;
+            if (m_RandomizeX)
+            {
+                x = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+            }
+            if (m_RandomizeY)
+            {
+                y = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+            }
+            if (m_RandomizeZ)
+            {
+                z = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+            }
+
+            randomizationForce = new Vector3(x, y, z);
+        }
+
+        private void MaintainHeight()
+        {
             RaycastHit hit;
             float terrainHeight = 0;
             if (Physics.Raycast(RB.transform.position, Vector3.down, out hit, Mathf.Infinity))
             {
                 terrainHeight = hit.distance;
-            } else
+            }
+            else
             {
                 Debug.LogWarning($"{name} has `Maintain Height` enabled but therre is no raycast hit below it. Relying on Steering Behaviours to keep things in order.");
                 return;
