@@ -59,7 +59,7 @@ namespace WizardsCode.AI
             }
             else if (m_LegacyAnimation)
             {
-                Debug.LogWarning("You are randomizing speed with a legacy animator. This will work fine if all clips have the same speed. Otherwise they will be adjusted to an identical speed making some animations look off. This is a limitation of the curent code and is unlikely to be fixed given this is for legacy animations. Patches welcome.");
+                Debug.LogWarning("You are randomizing speed with a legacy animator. This will work fine if all clips have the same speed. Otherwise they will be adjusted to an identical speed making some animations look off. This is a limitation of the curent code and is unlikely to be fixed given this is for legacy animations. Patches welcome if you actually have a need.");
                 float speed = 0;
                 foreach (AnimationState state in m_LegacyAnimation)
                 {
@@ -121,7 +121,7 @@ namespace WizardsCode.AI
         {
             if (!(m_RandomizeX || m_RandomizeX || m_RandomizeX)) return;
 
-            float force = MoveForce * 0.2f;
+            float force = MoveForce * 0.15f;
             float x = 0;
             float y = 0;
             float z = 0;

@@ -29,6 +29,8 @@ namespace WizardsCode.Spawning
         [Header("Positioning")]
         [SerializeField, Tooltip("If true then items spawned by this spawner will have their height adjusted to be within the mx height of the terrain height at the spawn coordinates.")]
         public bool AdjustToTerrainHeight = true;
+        [SerializeField, Tooltip("If true then items spawned by this spawner will have their height adjusted to be within the mx height of the water surface if appropriate at the spawn coordinates. This setting overrides the AdjustToTerrainHeight where approrpiate, that is if this is true then the spawn point will be above water regardless of the size height of the terrain and the AsjustToTerrainHeight setting.")]
+        public bool SpawnAboveWater = true;
         [SerializeField, Tooltip("The radiues that will be tested for obstructions. If an obstruction is found within this radius then a new spawn point will be generated.")]
         public float ClearRadius = 1.8f;
         [SerializeField, Tooltip("The layers to look for obsructions when spawning.")]
@@ -117,10 +119,7 @@ namespace WizardsCode.Spawning
             Vector3 randNormalizedVector = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), Random.Range(-1f, 1f));
             Vector3 pos = Vector3.Scale(dimensions, randNormalizedVector) + transform.position;
 
-            if (AdjustToTerrainHeight)
-            {
-                pos = AdjustHeight(pos);
-            }
+            pos = GetHeightAdjusted(pos);
 
             return pos;
         }
@@ -130,40 +129,63 @@ namespace WizardsCode.Spawning
         /// </summary>
         /// <param name="pos"></param>
         /// <returns></returns>
-        private Vector3 AdjustHeight(Vector3 pos)
+        private Vector3 GetHeightAdjusted(Vector3 pos)
         {
-            float clearance = (ClearRadius * 1.2f);
+            if (!AdjustToTerrainHeight && !SpawnAboveWater) return pos;
             
-            Terrain terrain = null;
-            if (Terrain.activeTerrains.Length == 1)
-            {
-                terrain = Terrain.activeTerrain;
-            } else
-            {
-                terrain = Terrain.activeTerrains.OrderBy(x =>
-                {
-                    Vector3 terrainPosition = x.transform.position;
-                    Vector3 terrainSize = x.terrainData.size * 0.5f;
-                    Vector3 terrainCenter = new Vector3(terrainPosition.x + terrainSize.x, terrainPosition.y, terrainPosition.z + terrainSize.z);
-                    return Vector3.SqrMagnitude(terrainCenter - pos);
-                }).First();
-            }                           
+            float clearance = (ClearRadius * 1.2f);
 
-            if (terrain != null)
+            if (AdjustToTerrainHeight)
             {
-                float terrainHeight = terrain.SampleHeight(pos);
-                
-                if (pos.y < terrainHeight + clearance)
+                Terrain terrain = null;
+                if (Terrain.activeTerrains.Length == 1)
                 {
-                    pos.y = terrain.transform.position.y + terrainHeight + clearance;
+                    terrain = Terrain.activeTerrain;
                 }
-                if (pos.y - terrainHeight > maxHeight)
+                else
                 {
-                    pos.y = terrain.transform.position.y + Random.Range(terrainHeight + clearance, terrainHeight + maxHeight);
+                    terrain = Terrain.activeTerrains.OrderBy(x =>
+                    {
+                        Vector3 terrainPosition = x.transform.position;
+                        Vector3 terrainSize = x.terrainData.size * 0.5f;
+                        Vector3 terrainCenter = new Vector3(terrainPosition.x + terrainSize.x, terrainPosition.y, terrainPosition.z + terrainSize.z);
+                        return Vector3.SqrMagnitude(terrainCenter - pos);
+                    }).First();
                 }
-            } else
+
+                if (terrain != null)
+                {
+                    float terrainHeight = terrain.SampleHeight(pos);
+
+                    if (pos.y < terrainHeight + clearance)
+                    {
+                        pos.y = terrain.transform.position.y + terrainHeight + clearance;
+                    } else if (pos.y - terrainHeight > maxHeight)
+                    {
+                        pos.y = terrain.transform.position.y + Random.Range(terrainHeight + clearance, terrainHeight + maxHeight);
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"No terrain found for {pos} while AdjustToTerrainheight is true.");
+                }
+            }
+
+            if (SpawnAboveWater)
             {
-                Debug.LogError($"No terrain found for {pos}.");
+                RaycastHit hit;
+                if (Physics.Raycast(pos, Vector3.up, out hit, Mathf.Infinity))
+                {
+                    float waterHeight = hit.distance;
+
+                    if (pos.y < waterHeight + clearance)
+                    {
+                        pos.y = waterHeight + clearance;
+                    } else if (pos.y - waterHeight > maxHeight)
+                    {
+                        pos.y = waterHeight + Random.Range(clearance, maxHeight);
+                    }
+                }
             }
 
             return pos;
@@ -186,7 +208,7 @@ namespace WizardsCode.Spawning
 
             // Red sphere marking the center of the box
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(AdjustHeight(transform.position), Mathf.Max(0.2f, ClearRadius));
+            Gizmos.DrawSphere(GetHeightAdjusted(transform.position), Mathf.Max(0.2f, ClearRadius));
 
             if (m_ShowAvailable || m_ShowUnavailable)
             {
@@ -205,7 +227,7 @@ namespace WizardsCode.Spawning
                         {
                             {
                                 Vector3 pos = transform.position + new Vector3(-width + x, -height + y, -depth + z);
-                                pos = AdjustHeight(pos);
+                                pos = GetHeightAdjusted(pos);
                                 if (m_ShowAvailable && !LocationIsObstructed(pos))
                                 {
                                     Gizmos.color = Color.green;
