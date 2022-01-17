@@ -3,6 +3,7 @@ using System.Collections;
 using System;
 using Random = UnityEngine.Random;
 using System.Linq;
+using UnityEngine.Serialization;
 
 namespace WizardsCode.Spawning
 {
@@ -10,19 +11,27 @@ namespace WizardsCode.Spawning
     {
         [SerializeField, Tooltip("The item we want to spawn using this spawner.")]
         public GameObject ToSpawn;
-        public int Number;
-        public float SpawnInterval;
+        [SerializeField, Tooltip("The number of items to spawn at start.")]
         public int StartSpawnAmount;
-
+        [SerializeField, Tooltip("The total number of items to have spawned. If an of the spawned items are destroyed then new ones will be spawned.")]
+        [FormerlySerializedAs("Number")]
+        public int TotalNumber;
+        [SerializeField, Tooltip("If there are not currently the TotalNumber of objects spawned into the world then how much time should pass between new ones being spawned.")]
+        public float SpawnInterval;
+        
+        [SerializeField, Tooltip("The x dimension of the box within which the objects will be spawned.")]
         public float SizeX = 10f;
-        private float SizeY = 10f; // Height is only used in the visuals, the position of the spawned objects is controlled by maxHeight
+        [SerializeField, Tooltip("The z dimension of the box within which the objects will be spawned.")]
         public float SizeZ = 10f;
-
-        [SerializeField, Tooltip("The maximum height above the terrain to spawn waypoints.")]
+        [SerializeField, Tooltip("Either the y dimension of the spawn box or the maximum height above the terrain to spawn waypoints. Which this represents depends on the `AdjustToTerrainHeight` setting below.")]
         public float maxHeight = 7;
 
-        [Header("Obstruction")]
+        [Header("Positioning")]
+        [SerializeField, Tooltip("If true then items spawned by this spawner will have their height adjusted to be within the mx height of the terrain height at the spawn coordinates.")]
+        public bool AdjustToTerrainHeight = true;
+        [SerializeField, Tooltip("The radiues that will be tested for obstructions. If an obstruction is found within this radius then a new spawn point will be generated.")]
         public float ClearRadius = 1.8f;
+        [SerializeField, Tooltip("The layers to look for obsructions when spawning.")]
         public LayerMask ObstructingLayers;
 
         [Header("Debug")]
@@ -36,7 +45,7 @@ namespace WizardsCode.Spawning
 
         void Awake()
         {
-            spawned = new GameObject[Number];
+            spawned = new GameObject[TotalNumber];
         }
 
         void Start()
@@ -94,7 +103,7 @@ namespace WizardsCode.Spawning
                     Debug.LogWarning("Failed to find spawn location after 10 tries, aborting.", gameObject);
                     return;
                 }
-                pos = chooseLocation();
+                pos = ChooseLocation();
             } while (LocationIsObstructed(pos));
 
             var newInst = Instantiate(ToSpawn, pos, transform.rotation) as GameObject;
@@ -102,13 +111,16 @@ namespace WizardsCode.Spawning
             spawned[nextSlot] = newInst;
         }
 
-        Vector3 chooseLocation()
+        Vector3 ChooseLocation()
         {
             Vector3 dimensions = new Vector3(SizeX / 2f, maxHeight, SizeZ / 2f);
             Vector3 randNormalizedVector = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), Random.Range(-1f, 1f));
             Vector3 pos = Vector3.Scale(dimensions, randNormalizedVector) + transform.position;
 
-            pos = AdjustHeight(pos);
+            if (AdjustToTerrainHeight)
+            {
+                pos = AdjustHeight(pos);
+            }
 
             return pos;
         }
@@ -168,9 +180,9 @@ namespace WizardsCode.Spawning
 
             // Blue box marking the boundary of the spawn area
             Gizmos.color = new Color(0, 0, 1, 0.35f);
-            Gizmos.DrawCube(transform.position, new Vector3(SizeX, SizeY, SizeZ));
+            Gizmos.DrawCube(transform.position, new Vector3(SizeX, maxHeight, SizeZ));
             Gizmos.color = new Color(0, 0, 1, 1);
-            Gizmos.DrawWireCube(transform.position, new Vector3(SizeX, SizeY, SizeZ));
+            Gizmos.DrawWireCube(transform.position, new Vector3(SizeX, maxHeight, SizeZ));
 
             // Red sphere marking the center of the box
             Gizmos.color = Color.red;
@@ -180,8 +192,8 @@ namespace WizardsCode.Spawning
             {
                 float depth = SizeX / 2;
                 float xInterval = Mathf.Max(0.3f, SizeX / 20);
-                float height = SizeY / 2;
-                float yInterval = Mathf.Max(0.3f, SizeY / 20);
+                float height = maxHeight / 2;
+                float yInterval = Mathf.Max(0.3f, maxHeight / 20);
                 float width = SizeZ / 2;
                 float zInterval = Mathf.Max(0.3f, SizeZ / 20);
 
@@ -189,7 +201,7 @@ namespace WizardsCode.Spawning
                 {
                     for (float z = 0; z < SizeZ; z += zInterval)
                     {
-                        for (float y = 0; y < SizeY; y += yInterval)
+                        for (float y = 0; y < maxHeight; y += yInterval)
                         {
                             {
                                 Vector3 pos = transform.position + new Vector3(-width + x, -height + y, -depth + z);
