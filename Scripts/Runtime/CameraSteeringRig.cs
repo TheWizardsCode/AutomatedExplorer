@@ -27,6 +27,40 @@ namespace WizardsCode.AI
             " encourage it to return to this height.")]
         float optimalHeight = 2f;
 
+        [SerializeField, Tooltip("Randomize the speed of this AI by up to +/- 10% on startup.")]
+        bool m_RandomizeSpeedOnStart = false;
+        [SerializeField, Tooltip("The animation controller for updating speed accordingly.")]
+        private Animator m_Animator;
+        [SerializeField, Tooltip("If you model is using the legacy animation system all is not lost, set it here and we will do the rest.")]
+        private Animation m_LegacyAnimation;
+
+        private void Start()
+        {
+            if (m_RandomizeSpeedOnStart) {
+                RandomizeSpeed();
+            }
+        }
+
+        /// <summary>
+        /// Randomize the speed of the animator and the movement.
+        /// </summary>
+        private void RandomizeSpeed()
+        {
+            float variation = Random.Range(0.9f, 1.1f);
+            MoveForce *= variation;
+
+            if (m_Animator)
+            {
+                m_Animator.speed = m_Animator.speed * variation;
+            } else if (m_LegacyAnimation)
+            {
+                foreach (AnimationState state in m_LegacyAnimation)
+                {
+                    state.speed *= variation;
+                }
+            }
+        }
+
         void LateUpdate()
         {
             if (!m_MaintainHeight) return;

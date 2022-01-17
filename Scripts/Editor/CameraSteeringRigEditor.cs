@@ -29,6 +29,9 @@ namespace WizardsCode.AIEditor
         SerializedProperty minHeight;
         SerializedProperty maxHeight;
         SerializedProperty optimalHeight;
+        SerializedProperty randomizeSpeedOnStart;
+        SerializedProperty animationController;
+        SerializedProperty legacyAnimationController;
 
         CameraSteeringRig steeringRig;
 
@@ -56,6 +59,9 @@ namespace WizardsCode.AIEditor
             minHeight = serializedObject.FindProperty("minHeight");
             maxHeight = serializedObject.FindProperty("maxHeight");
             optimalHeight = serializedObject.FindProperty("optimalHeight");
+            randomizeSpeedOnStart = serializedObject.FindProperty("m_RandomizeSpeedOnStart");
+            animationController = serializedObject.FindProperty("m_Animator");
+            legacyAnimationController = serializedObject.FindProperty("m_LegacyAnimation");
         }
 
         public override void OnInspectorGUI()
@@ -87,11 +93,22 @@ namespace WizardsCode.AIEditor
                 EditorGUILayout.PropertyField(faceTowardsTransform);
 
                 EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Speed Management", EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(randomizeSpeedOnStart);
+                if (randomizeSpeedOnStart.boolValue)
+                {
+                    EditorGUILayout.PropertyField(animationController);
+                    EditorGUILayout.PropertyField(legacyAnimationController);
+                }
+
+                EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Height Management", EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(maintainHeight);
-                EditorGUILayout.PropertyField(minHeight);
-                EditorGUILayout.PropertyField(maxHeight); 
-                EditorGUILayout.PropertyField(optimalHeight);
+                if (maintainHeight.boolValue) {
+                    EditorGUILayout.PropertyField(minHeight);
+                    EditorGUILayout.PropertyField(maxHeight);
+                    EditorGUILayout.PropertyField(optimalHeight);
+                }
             }
 
             displayErrors();
