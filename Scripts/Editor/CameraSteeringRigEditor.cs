@@ -101,9 +101,6 @@ namespace WizardsCode.AIEditor
                 EditorGUILayout.PropertyField(faceTowardsTransform);
 
                 EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Speed Management", EditorStyles.boldLabel);
-
-                EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Flight Randomization", EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(randomizeX);
                 EditorGUILayout.PropertyField(randomizeY);
