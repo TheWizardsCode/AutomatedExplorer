@@ -36,6 +36,7 @@ namespace WizardsCode.AIEditor
         SerializedProperty randomizeY;
         SerializedProperty randomizeZ;
         SerializedProperty randomizationFrequency;
+        SerializedProperty randomizationFactor;
 
         CameraSteeringRig steeringRig;
 
@@ -70,6 +71,7 @@ namespace WizardsCode.AIEditor
             randomizeY = serializedObject.FindProperty("m_RandomizeY");
             randomizeZ = serializedObject.FindProperty("m_RandomizeZ");
             randomizationFrequency = serializedObject.FindProperty("m_RandomizationFrequency");
+            randomizationFactor = serializedObject.FindProperty("m_RandomizationFactor");
         }
 
         public override void OnInspectorGUI()
@@ -117,6 +119,7 @@ namespace WizardsCode.AIEditor
                 if (randomizeX.boolValue || randomizeY.boolValue || randomizeZ.boolValue)
                 {
                     EditorGUILayout.PropertyField(randomizationFrequency);
+                    EditorGUILayout.PropertyField(randomizationFactor);
                 }
 
                 EditorGUILayout.Space();

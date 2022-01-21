@@ -93,7 +93,6 @@ namespace WizardsCode.AI
                         Steering.IgnoreList.Add(gameObject);
                         Steering.DestinationTransform = m_currentWaypoint.transform;
 
-                        Steering.RotateTowardsTarget = faceTowardsTarget;
                         if (faceTowardsTarget)
                         {
                             Steering.FaceTowardsTransform = m_currentWaypoint.transform; 

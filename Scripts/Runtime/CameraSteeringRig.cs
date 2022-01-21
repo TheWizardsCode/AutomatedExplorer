@@ -42,6 +42,8 @@ namespace WizardsCode.AI
         private bool m_RandomizeZ = true;
         [SerializeField, Tooltip("Frequency of randomization force change in seconds. Each time the randomization force is changed it will be in the opposite direction to the last change, thus the change will not often push the object too far off course.")]
         public float m_RandomizationFrequency = 3;
+        [SerializeField, Tooltip("The amount of randomization in each direction. The force in each direction will be between `Move Force` and +/-`MoveForce * RandomicationFactor`.")]
+        float m_RandomizationFactor = 1.1f;
 
         private Vector3 randomizationForce;
         private float timeOFRandomization;
@@ -129,21 +131,21 @@ namespace WizardsCode.AI
             {
                 if (Random.value < 0.7)
                 {
-                    x = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+                    x = randomizationForce.x < 0 ? Random.Range(force, force * m_RandomizationFactor) : Random.Range(-force * m_RandomizationFactor, -force);
                 }
             }
             if (m_RandomizeY)
             {
                 if (Random.value < 0.7)
                 {
-                    y = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+                    y = randomizationForce.x < 0 ? Random.Range(force, force * m_RandomizationFactor) : Random.Range(-force * m_RandomizationFactor, -force);
                 }
             }
             if (m_RandomizeZ)
             {
                 if (Random.value < 0.7)
                 {
-                    z = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+                    z = randomizationForce.x < 0 ? Random.Range(force, force * m_RandomizationFactor) : Random.Range(-force * m_RandomizationFactor, -force);
                 }
             }
 
