@@ -44,11 +44,12 @@ namespace WizardsCode.AI
         [Range(0, 1f)]
         float m_RandomizationFactor = 0.1f;
 
-        private Vector3 randomizationForce;
         private float timeOFRandomization;
         private float speedVariation;
         private float originalMoveForce;
+        private float targetMoveForce;
         private float originalSpeed;
+        private Vector3 targetRandomizationForce;
 
         private void Start()
         {
@@ -78,65 +79,62 @@ namespace WizardsCode.AI
                 MaintainHeight();
             }
 
-            if (timeOFRandomization <= Time.timeSinceLevelLoad)
-            {
-                CalculateRandomizationForce();
-                timeOFRandomization = Time.timeSinceLevelLoad + m_RandomizationFrequency;
-            }
-
-            if (randomizationForce != Vector3.zero)
-            {
-                RB.AddForce(randomizationForce);
-            }
+            ApplyRandomizationForce();
         }
 
         /// <summary>
         /// Calculate a random force that will be added to the object to add variation to the flight.
         /// </summary>
-        private void CalculateRandomizationForce()
+        private void ApplyRandomizationForce()
         {
             if (!(m_RandomizeX || m_RandomizeX || m_RandomizeX)) return;
+            if (timeOFRandomization > Time.timeSinceLevelLoad)
+            {
+                RB.AddForce(Vector3.Slerp(Vector3.zero, targetRandomizationForce, (Time.timeSinceLevelLoad - timeOFRandomization) / m_RandomizationFrequency));
+                return;
+            }
+            timeOFRandomization = Time.timeSinceLevelLoad + m_RandomizationFrequency;
 
-            float x = 0;
-            float y = 0;
-            float z = 0;
+            float targetX = 0;
+            float targetY = 0;
+            float targetZ = 0;
             if (m_RandomizeX)
             {
                 if (Random.value < 0.7)
                 {
-                    x = MoveForce * (1 + Random.Range(-m_RandomizationFactor, m_RandomizationFactor));
+                    targetX = MoveForce * (1 + Random.Range(-m_RandomizationFactor, m_RandomizationFactor));
                 }
             }
             if (m_RandomizeY)
             {
                 if (Random.value < 0.7)
                 {
-                    y = MoveForce * (1 + Random.Range(-m_RandomizationFactor, m_RandomizationFactor));
+                    targetY = MoveForce * (1 + Random.Range(-m_RandomizationFactor, m_RandomizationFactor));
                 }
             }
             if (m_RandomizeZ)
             {
                 if (Random.value < 0.7)
                 {
-                    z = 1 + Random.Range(-m_RandomizationFactor, m_RandomizationFactor);
+                    targetZ = 1 + Random.Range(-m_RandomizationFactor, m_RandomizationFactor);
 
                     if (m_Animator)
                     {
-                        m_Animator.speed = originalSpeed * z;
+                        m_Animator.speed = originalSpeed * targetZ;
                     }
                     else if (m_LegacyAnimation)
                     {
                         foreach (AnimationState state in m_LegacyAnimation)
                         {
-                            state.speed = z;
+                            state.speed = targetZ;
                         }
                     }
 
-                    z *= MoveForce;
+                    targetZ *= MoveForce;
                 }
             }
 
-            randomizationForce = new Vector3(x, y, z);
+            targetRandomizationForce = new Vector3(targetX, targetY, targetZ);
         }
 
         private void MaintainHeight()
