@@ -56,10 +56,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -128,10 +128,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -200,10 +200,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -272,10 +272,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -344,10 +344,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -416,10 +416,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -488,10 +488,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -560,10 +560,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -632,10 +632,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -704,10 +704,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -776,10 +776,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -848,10 +848,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -1101,6 +1101,13 @@ MonoBehaviour:
   minHeight: 1.5
   maxHeight: 2
   optimalHeight: 2
+  m_RandomizeSpeed: 0
+  m_Animator: {fileID: 0}
+  m_LegacyAnimation: {fileID: 0}
+  m_RandomizeX: 1
+  m_RandomizeY: 1
+  m_RandomizeZ: 1
+  m_RandomizationFrequency: 3
 --- !u!1 &184980
 GameObject:
   m_ObjectHideFlags: 0
@@ -1157,10 +1164,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0
@@ -1242,7 +1249,8 @@ MonoBehaviour:
   WaypoinArrivalSensor: {fileID: 11419296}
   strategy: 2
   randomness: 0.2
-  waypointPrefab: {fileID: 6907383477543755845, guid: ad452806b554e9b4e942ccc6439b68d5, type: 3}
+  waypointPrefab: {fileID: 6907383477543755845, guid: ad452806b554e9b4e942ccc6439b68d5,
+    type: 3}
   Steering: {fileID: 3194173746643593969}
   stuckDuration: 0.5
   stuckTolerance: 0.005
@@ -1317,10 +1325,10 @@ MonoBehaviour:
   Radius: 0
   ObstructedByLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   DetectsOnLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 17
   DetectionMode: 0
   Direction: {x: 0, y: 0, z: 1}
   WorldSpace: 0

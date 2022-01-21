@@ -121,21 +121,30 @@ namespace WizardsCode.AI
         {
             if (!(m_RandomizeX || m_RandomizeX || m_RandomizeX)) return;
 
-            float force = MoveForce * 0.15f;
+            float force = MoveForce * 0.1f;
             float x = 0;
             float y = 0;
             float z = 0;
             if (m_RandomizeX)
             {
-                x = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+                if (Random.value < 0.7)
+                {
+                    x = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+                }
             }
             if (m_RandomizeY)
             {
-                y = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+                if (Random.value < 0.7)
+                {
+                    y = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+                }
             }
             if (m_RandomizeZ)
             {
-                z = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+                if (Random.value < 0.7)
+                {
+                    z = randomizationForce.x < 0 ? Random.Range(force, force * 1.1f) : Random.Range(-force * 1.1f, -force);
+                }
             }
 
             randomizationForce = new Vector3(x, y, z);
