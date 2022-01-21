@@ -30,6 +30,8 @@ namespace WizardsCode.AI
         float stuckDuration = 0.5f;
         [SerializeField, Tooltip("The tolerance to use when deciding if the item is stuck. If the object moves more than this distance in any direction in the `stuckDuration` then it will be considered to be moving.")]
         float stuckTolerance = 0.05f;
+        [SerializeField, Tooltip("If set to true the sensor rig will be set to rotate towards the selected target waypoint.")]
+        bool faceTowardsTarget = false;
 
         [Header("Arrival Behaviours")]
         [SerializeField, Tooltip("Should the camera take a photo when arriving at a sensor.")]
@@ -90,6 +92,12 @@ namespace WizardsCode.AI
                         Steering.IgnoreList.Add(m_currentWaypoint.gameObject);
                         Steering.IgnoreList.Add(gameObject);
                         Steering.DestinationTransform = m_currentWaypoint.transform;
+
+                        Steering.RotateTowardsTarget = faceTowardsTarget;
+                        if (faceTowardsTarget)
+                        {
+                            Steering.FaceTowardsTransform = m_currentWaypoint.transform; 
+                        }
                     }
                 }
             }
