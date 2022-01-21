@@ -42,7 +42,7 @@ namespace WizardsCode.AI
         private bool m_RandomizeZ = true;
         [SerializeField, Tooltip("Frequency of randomization force change in seconds. Each time the randomization force is changed it will be in the opposite direction to the last change, thus the change will not often push the object too far off course.")]
         public float m_RandomizationFrequency = 3;
-        [SerializeField, Tooltip("The amount of randomization in each direction. The force in each direction will be between `Move Force` and +/-`MoveForce * RandomicationFactor`.")]
+        [SerializeField, Tooltip("The amount of randomization in each direction. The force in each direction will be between `Move Force` and +/-`MoveForce/10 * RandomicationFactor`.")]
         float m_RandomizationFactor = 1.1f;
 
         private Vector3 randomizationForce;
@@ -166,10 +166,9 @@ namespace WizardsCode.AI
                 return;
             }
 
-            float height = RB.transform.position.y - terrainHeight;
-            if (height > optimalHeight)
+            if (terrainHeight > optimalHeight)
             {
-                if (height > maxHeight)
+                if (terrainHeight > maxHeight)
                 {
                     RB.AddForce(RB.transform.up * -(MoveForce));
                 }
@@ -178,9 +177,9 @@ namespace WizardsCode.AI
                     RB.AddForce(RB.transform.up * -(MoveForce / 2));
                 }
             }
-            else if (height < optimalHeight)
+            else if (terrainHeight < optimalHeight)
             {
-                if (height < minHeight)
+                if (terrainHeight < minHeight)
                 {
                     RB.AddForce(RB.transform.up * (MoveForce));
                 }
