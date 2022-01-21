@@ -29,7 +29,6 @@ namespace WizardsCode.AIEditor
         SerializedProperty minHeight;
         SerializedProperty maxHeight;
         SerializedProperty optimalHeight;
-        SerializedProperty randomizeSpeedOnStart;
         SerializedProperty animationController;
         SerializedProperty legacyAnimationController;
         SerializedProperty randomizeX;
@@ -64,7 +63,6 @@ namespace WizardsCode.AIEditor
             minHeight = serializedObject.FindProperty("minHeight");
             maxHeight = serializedObject.FindProperty("maxHeight");
             optimalHeight = serializedObject.FindProperty("optimalHeight");
-            randomizeSpeedOnStart = serializedObject.FindProperty("m_RandomizeSpeed");
             animationController = serializedObject.FindProperty("m_Animator");
             legacyAnimationController = serializedObject.FindProperty("m_LegacyAnimation");
             randomizeX = serializedObject.FindProperty("m_RandomizeX");
@@ -104,12 +102,6 @@ namespace WizardsCode.AIEditor
 
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Speed Management", EditorStyles.boldLabel);
-                EditorGUILayout.PropertyField(randomizeSpeedOnStart);
-                if (randomizeSpeedOnStart.boolValue)
-                {
-                    EditorGUILayout.PropertyField(animationController);
-                    EditorGUILayout.PropertyField(legacyAnimationController);
-                }
 
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Flight Randomization", EditorStyles.boldLabel);
@@ -120,6 +112,11 @@ namespace WizardsCode.AIEditor
                 {
                     EditorGUILayout.PropertyField(randomizationFrequency);
                     EditorGUILayout.PropertyField(randomizationFactor);
+                }
+                if (randomizeZ.boolValue)
+                {
+                    EditorGUILayout.PropertyField(animationController);
+                    EditorGUILayout.PropertyField(legacyAnimationController);
                 }
 
                 EditorGUILayout.Space();

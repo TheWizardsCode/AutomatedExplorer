@@ -27,8 +27,6 @@ namespace WizardsCode.AI
             " encourage it to return to this height.")]
         float optimalHeight = 2f;
 
-        [SerializeField, Tooltip("Randomize the speed of this AI by up to +/- 10% on startup.")]
-        bool m_RandomizeSpeed = false;
         [SerializeField, Tooltip("The animation controller for updating speed accordingly.")]
         private Animator m_Animator;
         [SerializeField, Tooltip("If you model is using the legacy animation system all is not lost, set it here and we will do the rest.")]
@@ -38,12 +36,13 @@ namespace WizardsCode.AI
         private bool m_RandomizeX = true;
         [SerializeField, Tooltip("Should forces be applied randomly in the y direction.")]
         private bool m_RandomizeY = true;
-        [SerializeField, Tooltip("Should forces be applied randomly in the z direction.")]
+        [SerializeField, Tooltip("Should forces be applied randomly in the z direction. Since Z is (usually) the forward direction the speed of the animator will also be modified according to this value.")]
         private bool m_RandomizeZ = true;
         [SerializeField, Tooltip("Frequency of randomization force change in seconds. Each time the randomization force is changed it will be in the opposite direction to the last change, thus the change will not often push the object too far off course.")]
         public float m_RandomizationFrequency = 3;
-        [SerializeField, Tooltip("The amount of randomization in each direction. The force in each direction will be between `Move Force` and +/-`MoveForce/10 * RandomicationFactor`.")]
-        float m_RandomizationFactor = 1.1f;
+        [SerializeField, Tooltip("The amount of randomization in each direction. The force in each direction will be adjusted up or down by this % amount.")]
+        [Range(0, 1f)]
+        float m_RandomizationFactor = 0.1f;
 
         private Vector3 randomizationForce;
         private float timeOFRandomization;
@@ -70,27 +69,6 @@ namespace WizardsCode.AI
                 originalSpeed = speed / m_LegacyAnimation.GetClipCount();
             }
         }
-
-        /// <summary>
-        /// Randomize the speed of the animator and the movement.
-        /// </summary>
-        private void RandomizeSpeed()
-        {
-            speedVariation = MoveForce < originalMoveForce ? Random.Range(1f, 1.1f) : Random.Range(0.9f, 1f);
-            MoveForce = originalMoveForce * speedVariation;
-
-            if (m_Animator)
-            {
-                m_Animator.speed = originalSpeed * speedVariation;
-            } else if (m_LegacyAnimation)
-            {
-                foreach (AnimationState state in m_LegacyAnimation)
-                {
-                    state.speed *= speedVariation;
-                }
-            }
-        }
-
         void LateUpdate()
         {
             if (RB == null || RB.isKinematic || !IsSeeking) return;
@@ -103,10 +81,6 @@ namespace WizardsCode.AI
             if (timeOFRandomization <= Time.timeSinceLevelLoad)
             {
                 CalculateRandomizationForce();
-                if (m_RandomizeSpeed)
-                {
-                    RandomizeSpeed();
-                }
                 timeOFRandomization = Time.timeSinceLevelLoad + m_RandomizationFrequency;
             }
 
@@ -123,7 +97,6 @@ namespace WizardsCode.AI
         {
             if (!(m_RandomizeX || m_RandomizeX || m_RandomizeX)) return;
 
-            float force = MoveForce * 0.1f;
             float x = 0;
             float y = 0;
             float z = 0;
@@ -131,21 +104,35 @@ namespace WizardsCode.AI
             {
                 if (Random.value < 0.7)
                 {
-                    x = randomizationForce.x < 0 ? Random.Range(force, force * m_RandomizationFactor) : Random.Range(-force * m_RandomizationFactor, -force);
+                    x = MoveForce * (1 + Random.Range(-m_RandomizationFactor, m_RandomizationFactor));
                 }
             }
             if (m_RandomizeY)
             {
                 if (Random.value < 0.7)
                 {
-                    y = randomizationForce.x < 0 ? Random.Range(force, force * m_RandomizationFactor) : Random.Range(-force * m_RandomizationFactor, -force);
+                    y = MoveForce * (1 + Random.Range(-m_RandomizationFactor, m_RandomizationFactor));
                 }
             }
             if (m_RandomizeZ)
             {
                 if (Random.value < 0.7)
                 {
-                    z = randomizationForce.x < 0 ? Random.Range(force, force * m_RandomizationFactor) : Random.Range(-force * m_RandomizationFactor, -force);
+                    z = 1 + Random.Range(-m_RandomizationFactor, m_RandomizationFactor);
+
+                    if (m_Animator)
+                    {
+                        m_Animator.speed = originalSpeed * z;
+                    }
+                    else if (m_LegacyAnimation)
+                    {
+                        foreach (AnimationState state in m_LegacyAnimation)
+                        {
+                            state.speed = z;
+                        }
+                    }
+
+                    z *= MoveForce;
                 }
             }
 
