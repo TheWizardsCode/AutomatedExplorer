@@ -24,7 +24,7 @@ Note, using this method you cannot edit the sourcecode as packages are imported 
 ### Install Sensor Toolkit
 
   1. Purchase and Install [Sensor Toolkit](https://assetstore.unity.com/packages/tools/ai/sensor-toolkit-88036?aid=1101l866w) (affiliate link)
-  2. Add an Assembly Definition file called `Assets/SensorToolkit/sensortoolkit` - the default file created will be enough, but note that more nuance will be needed if you plan to make a build. PRs welcome.
+  2. Add an Assembly Definition file called `Assets/SensorToolkit/micosmo.sensortoolkit` - the default file created will be enough, but note that more nuance will be needed if you plan to make a build. PRs welcome.
 
 ### Install Automated Explorer
 
