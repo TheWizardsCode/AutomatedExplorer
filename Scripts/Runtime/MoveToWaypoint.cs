@@ -74,6 +74,8 @@ namespace WizardsCode.AI
 #endif
         }
 
+        private WayPoint nextWaypoint;
+
         WayPoint currentWaypoint
         {
             get
@@ -190,25 +192,50 @@ namespace WizardsCode.AI
             }
         }
 
+        /// <summary>
+        /// Selects a new waypoint according to the defined strategy. If the selected waypoint is > 90 degrees to the left or right an interim
+        /// waypoint will be generated to smooth the flight curve.
+        /// </summary>
         private void SelectNewWaypoint()
         {
-            switch (strategy)
+            if (nextWaypoint != null)
             {
-                case SelectionStrategy.nearest:
-                    currentWaypoint = GetWeightedNearestFromPointWithComponent(transform.position);
-                    break;
-                case SelectionStrategy.furthest:
-                    currentWaypoint = GetWeightedFurthestFromPointWithComponent(transform.position);
-                    break;
-                case SelectionStrategy.random:
-                    if (WaypointSensor.DetectedObjects.Count > 0)
-                    {
-                        currentWaypoint = WaypointSensor.DetectedObjects[Random.Range(0, WaypointSensor.DetectedObjects.Count)].GetComponent<WayPoint>();
-                    }
-                    break;
-                default:
-                    Debug.LogError("Unknown selection strategy: " + strategy);
-                    break;
+                currentWaypoint = nextWaypoint;
+                nextWaypoint = null;
+            }
+            else
+            {
+                switch (strategy)
+                {
+                    case SelectionStrategy.nearest:
+                        currentWaypoint = GetWeightedNearestFromPointWithComponent(transform.position);
+                        break;
+                    case SelectionStrategy.furthest:
+                        currentWaypoint = GetWeightedFurthestFromPointWithComponent(transform.position);
+                        break;
+                    case SelectionStrategy.random:
+                        if (WaypointSensor.DetectedObjects.Count > 0)
+                        {
+                            currentWaypoint = WaypointSensor.DetectedObjects[Random.Range(0, WaypointSensor.DetectedObjects.Count)].GetComponent<WayPoint>();
+                        }
+                        break;
+                    default:
+                        Debug.LogError("Unknown selection strategy: " + strategy);
+                        break;
+                }
+            }
+
+            float angle = Vector3.SignedAngle(transform.position, currentWaypoint.transform.position, transform.up);
+            if ( angle > 90)
+            {
+                nextWaypoint = currentWaypoint;
+                currentWaypoint = Instantiate(waypointPrefab);
+                currentWaypoint.transform.position = transform.position + (transform.right * 5) + (transform.forward * 2);
+            } else if (angle < -90)
+            {
+                nextWaypoint = currentWaypoint;
+                currentWaypoint = Instantiate(waypointPrefab);
+                currentWaypoint.transform.position = transform.position + (-transform.right * 5) + (transform.forward * 2);
             }
         }
 
