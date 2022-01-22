@@ -70,9 +70,15 @@ namespace WizardsCode.AI
                 originalSpeed = speed / m_LegacyAnimation.GetClipCount();
             }
         }
-        void LateUpdate()
+
+        /// <summary>
+        /// FIXME: This requires that the SteeringUpdate base class is marketed `protected virtual` which it is not out of the box. 
+        /// I've made a request to do this at https://forum.unity.com/threads/released-sensor-toolkit.468255/
+        /// but at the time of writing you will need to make this edit yourself.
+        /// </summary>
+        protected override void FixedUpdate()
         {
-            if (RB == null || RB.isKinematic || !IsSeeking) return;
+            base.FixedUpdate();
 
             if (m_MaintainHeight)
             {
@@ -80,6 +86,21 @@ namespace WizardsCode.AI
             }
 
             ApplyRandomizationForce();
+
+            SetAnimationParameters();
+        }
+
+        void SetAnimationParameters()
+        {
+            if (m_Animator)
+            {
+                Vector3 velocity = RB.transform.InverseTransformDirection(RB.velocity);
+
+                //m_Animator.SetFloat("x", velocity.x);
+                m_Animator.SetFloat("angularVelocity", RB.angularVelocity.y);
+                m_Animator.SetFloat("y", velocity.y);
+                m_Animator.SetFloat("forwardVelocity", velocity.z);
+            }
         }
 
         /// <summary>
