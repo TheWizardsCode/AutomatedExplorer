@@ -23,6 +23,8 @@ namespace WizardsCode.Spawning
         public float SizeX = 10f;
         [SerializeField, Tooltip("The z dimension of the box within which the objects will be spawned.")]
         public float SizeZ = 10f;
+        [SerializeField, Tooltip("The minimum height at which objects will spawn. This can be affected by the clear radius below (i.e. the larger of the two will take precedent).")]
+        public float minHeight = 7;
         [SerializeField, Tooltip("Either the y dimension of the spawn box or the maximum height above the terrain to spawn waypoints. Which this represents depends on the `AdjustToTerrainHeight` setting below.")]
         public float maxHeight = 7;
 
@@ -115,9 +117,10 @@ namespace WizardsCode.Spawning
 
         Vector3 ChooseLocation()
         {
-            Vector3 dimensions = new Vector3(SizeX / 2f, maxHeight, SizeZ / 2f);
+            Vector3 dimensions = new Vector3(SizeX / 2f, maxHeight - minHeight, SizeZ / 2f);
             Vector3 randNormalizedVector = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), Random.Range(-1f, 1f));
             Vector3 pos = Vector3.Scale(dimensions, randNormalizedVector) + transform.position;
+            pos.y += minHeight;
 
             pos = GetHeightAdjusted(pos);
 
@@ -133,7 +136,7 @@ namespace WizardsCode.Spawning
         {
             if (!AdjustToTerrainHeight && !SpawnAboveWater) return pos;
             
-            float clearance = (ClearRadius * 1.2f);
+            float clearance = (ClearRadius * 1.05f);
 
             if (AdjustToTerrainHeight)
             {
@@ -202,9 +205,9 @@ namespace WizardsCode.Spawning
 
             // Blue box marking the boundary of the spawn area
             Gizmos.color = new Color(0, 0, 1, 0.35f);
-            Gizmos.DrawCube(transform.position, new Vector3(SizeX, maxHeight, SizeZ));
+            Gizmos.DrawCube(transform.position, new Vector3(SizeX, maxHeight - minHeight, SizeZ));
             Gizmos.color = new Color(0, 0, 1, 1);
-            Gizmos.DrawWireCube(transform.position, new Vector3(SizeX, maxHeight, SizeZ));
+            Gizmos.DrawWireCube(transform.position, new Vector3(SizeX, maxHeight - minHeight, SizeZ));
 
             // Red sphere marking the center of the box
             Gizmos.color = Color.red;
