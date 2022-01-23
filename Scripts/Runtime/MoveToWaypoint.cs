@@ -75,6 +75,7 @@ namespace WizardsCode.AI
         }
 
         private WayPoint nextWaypoint;
+        private WayPoint lastWaypoint;
 
         WayPoint currentWaypoint
         {
@@ -173,6 +174,7 @@ namespace WizardsCode.AI
                 currentWaypoint.Disable();
             }
             WaypointSensor.Pulse();
+            lastWaypoint = currentWaypoint;
             currentWaypoint = null;
 
             if (m_TakePhotoOnArrival)
@@ -205,23 +207,30 @@ namespace WizardsCode.AI
             }
             else
             {
-                switch (strategy)
+                if (lastWaypoint && lastWaypoint.NextWaypoint && lastWaypoint.NextWaypoint.IsEnabled)
                 {
-                    case SelectionStrategy.nearest:
-                        currentWaypoint = GetWeightedNearestFromPointWithComponent(transform.position);
-                        break;
-                    case SelectionStrategy.furthest:
-                        currentWaypoint = GetWeightedFurthestFromPointWithComponent(transform.position);
-                        break;
-                    case SelectionStrategy.random:
-                        if (WaypointSensor.DetectedObjects.Count > 0)
-                        {
-                            currentWaypoint = WaypointSensor.DetectedObjects[Random.Range(0, WaypointSensor.DetectedObjects.Count)].GetComponent<WayPoint>();
-                        }
-                        break;
-                    default:
-                        Debug.LogError("Unknown selection strategy: " + strategy);
-                        break;
+                    currentWaypoint = lastWaypoint.NextWaypoint;
+                }
+                else
+                {
+                    switch (strategy)
+                    {
+                        case SelectionStrategy.nearest:
+                            currentWaypoint = GetWeightedNearestFromPointWithComponent(transform.position);
+                            break;
+                        case SelectionStrategy.furthest:
+                            currentWaypoint = GetWeightedFurthestFromPointWithComponent(transform.position);
+                            break;
+                        case SelectionStrategy.random:
+                            if (WaypointSensor.DetectedObjects.Count > 0)
+                            {
+                                currentWaypoint = WaypointSensor.DetectedObjects[Random.Range(0, WaypointSensor.DetectedObjects.Count)].GetComponent<WayPoint>();
+                            }
+                            break;
+                        default:
+                            Debug.LogError("Unknown selection strategy: " + strategy);
+                            break;
+                    }
                 }
             }
 

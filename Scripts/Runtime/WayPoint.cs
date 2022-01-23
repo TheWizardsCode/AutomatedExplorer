@@ -17,31 +17,44 @@ namespace WizardsCode.AI
         internal float weight = 0.5f;
         [SerializeField, Tooltip("Time, in seconds, to wait before re-enabling the waypoint after it is visited. If 0 the waypoint will not be re-enabled.")]
         internal float reEnableWaitTime = 0;
+        [SerializeField, Tooltip("If set the next waypoint selected will be the one set here, assuming that it is still present in the scene.")]
+        public WayPoint NextWaypoint;
 
-        bool isEnabled = false;
         float timeToReEnable = 0;
+
+        bool m_IsEnabled = true;
+        /// <summary>
+        /// Enables or disables this waypoint. This is different from activating or deactivating the GameObject.
+        /// When disabled the colliders will be turned off to prevent it being detected, but the scripts attached
+        /// will continue to operate.
+        /// </summary>
+        public bool IsEnabled
+        {
+            get { return m_IsEnabled; } 
+            internal set
+            {
+                m_IsEnabled = value;
+
+                Collider[] colliders = GetComponents<Collider>();
+                for (int i = 0; i < colliders.Length; i++)
+                {
+                    colliders[i].enabled = m_IsEnabled;
+                }
+            }
+        }
 
         private void Start()
         {
-            Collider[] colliders = GetComponents<Collider>();
-            for (int i = 0; i < colliders.Length; i++)
-            {
-                if (colliders[i].enabled)
-                {
-                    isEnabled = true;
-                    break;
-                }
-            }
-
+            IsEnabled = true;
             timeToReEnable = float.PositiveInfinity;
         }
 
 
         private void Update()
         {
-            if (!isEnabled && timeToReEnable <= Time.timeSinceLevelLoad)
+            if (!IsEnabled && timeToReEnable <= Time.timeSinceLevelLoad)
             {
-                SetEnabled(true);
+                IsEnabled = true;
             }
         }
 
@@ -53,7 +66,7 @@ namespace WizardsCode.AI
         /// </summary>
         public void Disable()
         {
-            SetEnabled(false);
+            IsEnabled = false;
             if (reEnableWaitTime > 0)
             {
                 timeToReEnable = Time.timeSinceLevelLoad + reEnableWaitTime;
@@ -66,18 +79,7 @@ namespace WizardsCode.AI
         /// </summary>
         public void Enable()
         {
-            SetEnabled(true);
-        }
-
-        private void SetEnabled(bool enabled)
-        {
-            Collider[] colliders = GetComponents<Collider>();
-            for (int i = 0; i < colliders.Length; i++)
-            {
-                colliders[i].enabled = enabled;
-            }
-
-            isEnabled = enabled;
+            IsEnabled =true;
         }
 
         private void OnDrawGizmos()
