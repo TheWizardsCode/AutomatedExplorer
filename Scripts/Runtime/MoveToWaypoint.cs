@@ -242,12 +242,17 @@ namespace WizardsCode.AI
                 nextWaypoint = currentWaypoint;
                 currentWaypoint = Instantiate(waypointPrefab);
                 currentWaypoint.name = $"Turning waypoint (heading to {nextWaypoint}).";
+                Vector3 leftRight = Vector3.zero;
                 if (Vector3.SignedAngle(currentWaypoint.transform.position, root.position, Vector3.up) > 0) {
-                    currentWaypoint.transform.position = transform.position + (root.right * 10) + (root.forward * 10);
+                    leftRight = root.right;
                 } else
                 {
-                    currentWaypoint.transform.position = transform.position + (-root.right * 10) + (root.forward * 10);
+                    leftRight = -root.right;
                 }
+
+                Vector3 pos = transform.position + (leftRight * 10) + (root.forward * 10);
+                pos.y = root.position.y;
+                currentWaypoint.transform.position = pos;
             }
         }
 

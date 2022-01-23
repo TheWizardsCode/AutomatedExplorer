@@ -98,7 +98,7 @@ namespace WizardsCode.AI
 
                 //m_Animator.SetFloat("x", velocity.x);
                 m_Animator.SetFloat("angularVelocity", RB.angularVelocity.y);
-                m_Animator.SetFloat("verticalVelocity", -velocity.y);
+                m_Animator.SetFloat("verticalVelocity", velocity.y);
                 m_Animator.SetFloat("forwardVelocity", velocity.z);
             }
         }
