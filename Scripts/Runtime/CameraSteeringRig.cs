@@ -172,9 +172,14 @@ namespace WizardsCode.AI
                 return;
             }
 
-            if (terrainHeight > optimalHeight)
+            float objectHeight = transform.position.y - terrainHeight;
+            float waypointHeight = Destination.y - terrainHeight;
+
+            if (waypointHeight > optimalHeight || waypointHeight < optimalHeight) return;
+
+            if (objectHeight > optimalHeight)
             {
-                if (terrainHeight > maxHeight)
+                if (objectHeight > maxHeight)
                 {
                     RB.AddForce(RB.transform.up * -(MoveForce));
                 }
@@ -183,9 +188,9 @@ namespace WizardsCode.AI
                     RB.AddForce(RB.transform.up * -(MoveForce / 2));
                 }
             }
-            else if (terrainHeight < optimalHeight)
+            else if (objectHeight < optimalHeight)
             {
-                if (terrainHeight < minHeight)
+                if (objectHeight < minHeight)
                 {
                     RB.AddForce(RB.transform.up * (MoveForce));
                 }

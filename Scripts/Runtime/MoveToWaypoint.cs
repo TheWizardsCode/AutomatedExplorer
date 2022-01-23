@@ -225,17 +225,21 @@ namespace WizardsCode.AI
                 }
             }
 
-            float angle = Vector3.SignedAngle(transform.position, currentWaypoint.transform.position, transform.up);
-            if ( angle > 90)
+            Transform root = transform.root;
+            Vector3 heading = currentWaypoint.transform.position - root.position;
+            float dot = Vector3.Dot(heading, root.forward);
+            Debug.Log($"Dot to {currentWaypoint} is {dot}");
+            if ( dot < 0.5)
             {
                 nextWaypoint = currentWaypoint;
                 currentWaypoint = Instantiate(waypointPrefab);
-                currentWaypoint.transform.position = transform.position + (transform.right * 5) + (transform.forward * 2);
-            } else if (angle < -90)
-            {
-                nextWaypoint = currentWaypoint;
-                currentWaypoint = Instantiate(waypointPrefab);
-                currentWaypoint.transform.position = transform.position + (-transform.right * 5) + (transform.forward * 2);
+                currentWaypoint.name = $"Turning waypoint (heading to {nextWaypoint}).";
+                if (Vector3.SignedAngle(currentWaypoint.transform.position, root.position, Vector3.up) > 0) {
+                    currentWaypoint.transform.position = transform.position + (root.right * 10) + (root.forward * 5);
+                } else
+                {
+                    currentWaypoint.transform.position = transform.position + (-root.right * 10) + (root.forward * 5);
+                }
             }
         }
 
