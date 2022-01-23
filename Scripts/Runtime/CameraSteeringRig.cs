@@ -27,6 +27,11 @@ namespace WizardsCode.AI
             " encourage it to return to this height.")]
         float optimalHeight = 2f;
 
+        [SerializeField, Tooltip("The maximum vertical velocity this object is expected to reach. This is used to normalize the animator parameters.")]
+        float m_MaxVerticalVelocity = 6;
+        [SerializeField, Tooltip("The maximum vertical velocity this object is expected to reach. This is used to normalize the animator parameters.")]
+        float m_MaxForwardVelocity = 20;
+
         [SerializeField, Tooltip("The animation controller for updating speed accordingly.")]
         private Animator m_Animator;
         [SerializeField, Tooltip("If you model is using the legacy animation system all is not lost, set it here and we will do the rest.")]
@@ -72,7 +77,7 @@ namespace WizardsCode.AI
         }
 
         /// <summary>
-        /// FIXME: This requires that the SteeringUpdate base class is marketed `protected virtual` which it is not out of the box. 
+        /// FIXME: This requires that the `SteeringRig.FixedUpdate` method is marked `protected virtual` which it is not out of the box. 
         /// I've made a request to do this at https://forum.unity.com/threads/released-sensor-toolkit.468255/
         /// but at the time of writing you will need to make this edit yourself.
         /// </summary>
@@ -80,10 +85,7 @@ namespace WizardsCode.AI
         {
             base.FixedUpdate();
 
-            if (m_MaintainHeight)
-            {
-                MaintainHeight();
-            }
+            MaintainHeight();
 
             ApplyRandomizationForce();
 
@@ -99,8 +101,24 @@ namespace WizardsCode.AI
 
                 //TODO: Use Hash not string
                 m_Animator.SetFloat("angularVelocity", RB.angularVelocity.y);
-                m_Animator.SetFloat("verticalVelocity", velocity.y);
-                m_Animator.SetFloat("forwardVelocity", velocity.z);
+
+                Debug.Log($"Vertical Velocity is {velocity.y}");
+                if (velocity.y > 0)
+                {
+                    m_Animator.SetFloat("verticalVelocity", Mathf.Clamp01(velocity.y / m_MaxVerticalVelocity));
+                }
+                else
+                {
+                    m_Animator.SetFloat("verticalVelocity", -Mathf.Clamp01(-velocity.y / m_MaxVerticalVelocity));
+                }
+                if (velocity.z > 0)
+                {
+                    m_Animator.SetFloat("forwardVelocity", Mathf.Clamp01(velocity.z / m_MaxForwardVelocity));
+                } 
+                else
+                {
+                    m_Animator.SetFloat("forwardVelocity", -Mathf.Clamp01(-velocity.z / m_MaxForwardVelocity));
+                }
             }
         }
 
@@ -161,6 +179,9 @@ namespace WizardsCode.AI
 
         private void MaintainHeight()
         {
+
+            if (!m_MaintainHeight) return;
+            
             RaycastHit hit;
             float height = 0;
             if (Physics.Raycast(RB.transform.position, Vector3.down, out hit, Mathf.Infinity))

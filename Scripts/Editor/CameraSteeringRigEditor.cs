@@ -29,6 +29,8 @@ namespace WizardsCode.AIEditor
         SerializedProperty minHeight;
         SerializedProperty maxHeight;
         SerializedProperty optimalHeight;
+        SerializedProperty maxVerticalVelocity;
+        SerializedProperty maxForwardVelocity;
         SerializedProperty animationController;
         SerializedProperty legacyAnimationController;
         SerializedProperty randomizeX;
@@ -65,6 +67,8 @@ namespace WizardsCode.AIEditor
             optimalHeight = serializedObject.FindProperty("optimalHeight");
             animationController = serializedObject.FindProperty("m_Animator");
             legacyAnimationController = serializedObject.FindProperty("m_LegacyAnimation");
+            maxVerticalVelocity = serializedObject.FindProperty("m_MaxVerticalVelocity");
+            maxForwardVelocity = serializedObject.FindProperty("m_MaxForwardVelocity");
             randomizeX = serializedObject.FindProperty("m_RandomizeX");
             randomizeY = serializedObject.FindProperty("m_RandomizeY");
             randomizeZ = serializedObject.FindProperty("m_RandomizeZ");
@@ -110,11 +114,13 @@ namespace WizardsCode.AIEditor
                     EditorGUILayout.PropertyField(randomizationFrequency);
                     EditorGUILayout.PropertyField(randomizationFactor);
                 }
-                if (randomizeZ.boolValue)
-                {
-                    EditorGUILayout.PropertyField(animationController);
-                    EditorGUILayout.PropertyField(legacyAnimationController);
-                }
+
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Animation", EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(animationController);
+                EditorGUILayout.PropertyField(legacyAnimationController);
+                EditorGUILayout.PropertyField(maxVerticalVelocity);
+                EditorGUILayout.PropertyField(maxForwardVelocity);
 
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Height Management", EditorStyles.boldLabel);

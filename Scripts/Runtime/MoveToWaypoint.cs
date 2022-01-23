@@ -250,7 +250,8 @@ namespace WizardsCode.AI
                     leftRight = -root.right;
                 }
 
-                Vector3 pos = transform.position + (leftRight * 10) + (root.forward * 10);
+                Vector3 pos = transform.position + (leftRight * 15) + (root.forward * 15);
+                //FIXME: this needs to be set at a height above the terrain as there is a danger that it will be set into a slope and be inacessible
                 pos.y = root.position.y;
                 currentWaypoint.transform.position = pos;
             }
