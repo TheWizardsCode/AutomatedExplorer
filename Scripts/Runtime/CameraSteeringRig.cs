@@ -92,11 +92,12 @@ namespace WizardsCode.AI
 
         void SetAnimationParameters()
         {
+            // TODO:Allow animations to be disabled
             if (m_Animator)
             {
                 Vector3 velocity = RB.transform.InverseTransformDirection(RB.velocity);
 
-                //m_Animator.SetFloat("x", velocity.x);
+                //TODO: Use Hash not string
                 m_Animator.SetFloat("angularVelocity", RB.angularVelocity.y);
                 m_Animator.SetFloat("verticalVelocity", velocity.y);
                 m_Animator.SetFloat("forwardVelocity", velocity.z);
@@ -161,10 +162,10 @@ namespace WizardsCode.AI
         private void MaintainHeight()
         {
             RaycastHit hit;
-            float terrainHeight = 0;
+            float height = 0;
             if (Physics.Raycast(RB.transform.position, Vector3.down, out hit, Mathf.Infinity))
             {
-                terrainHeight = hit.distance;
+                height = hit.distance;
             }
             else
             {
@@ -172,31 +173,31 @@ namespace WizardsCode.AI
                 return;
             }
 
-            float objectHeight = transform.position.y - terrainHeight;
-            float waypointHeight = Destination.y - terrainHeight;
+            /* What was this for? doesn't really do anything useful that I can think of. Commented out to see what it does... 1/24/22 
+            float waypointHeight = Destination.y - height;
 
             if (waypointHeight > optimalHeight || waypointHeight < optimalHeight) return;
-
-            if (objectHeight > optimalHeight)
+            */
+            if (height > optimalHeight)
             {
-                if (objectHeight > maxHeight)
+                if (height > maxHeight)
                 {
-                    RB.AddForce(RB.transform.up * -(MoveForce));
-                }
+                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, -MoveForce, Mathf.Clamp01((height - maxHeight) / maxHeight)));
+                } 
                 else
                 {
-                    RB.AddForce(RB.transform.up * -(MoveForce / 2));
+                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, -MoveForce, Mathf.Clamp01((height - optimalHeight) / optimalHeight)));
                 }
             }
-            else if (objectHeight < optimalHeight)
+            else if (height < optimalHeight)
             {
-                if (objectHeight < minHeight)
+                if (height < minHeight)
                 {
-                    RB.AddForce(RB.transform.up * (MoveForce));
+                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, MoveForce, Mathf.Clamp01((minHeight - height) / minHeight)));
                 }
                 else
                 {
-                    RB.AddForce(RB.transform.up * (MoveForce / 2));
+                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, MoveForce, Mathf.Clamp01((optimalHeight - height) / optimalHeight)));
                 }
             }
         }
