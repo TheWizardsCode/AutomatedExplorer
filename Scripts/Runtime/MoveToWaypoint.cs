@@ -228,17 +228,16 @@ namespace WizardsCode.AI
             Transform root = transform.root;
             Vector3 heading = currentWaypoint.transform.position - root.position;
             float dot = Vector3.Dot(heading, root.forward);
-            Debug.Log($"Dot to {currentWaypoint} is {dot}");
             if ( dot < 0.5)
             {
                 nextWaypoint = currentWaypoint;
                 currentWaypoint = Instantiate(waypointPrefab);
                 currentWaypoint.name = $"Turning waypoint (heading to {nextWaypoint}).";
                 if (Vector3.SignedAngle(currentWaypoint.transform.position, root.position, Vector3.up) > 0) {
-                    currentWaypoint.transform.position = transform.position + (root.right * 10) + (root.forward * 5);
+                    currentWaypoint.transform.position = transform.position + (root.right * 10) + (root.forward * 10);
                 } else
                 {
-                    currentWaypoint.transform.position = transform.position + (-root.right * 10) + (root.forward * 5);
+                    currentWaypoint.transform.position = transform.position + (-root.right * 10) + (root.forward * 10);
                 }
             }
         }
