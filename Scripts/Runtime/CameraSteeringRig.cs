@@ -102,7 +102,6 @@ namespace WizardsCode.AI
                 //TODO: Use Hash not string
                 m_Animator.SetFloat("angularVelocity", RB.angularVelocity.y);
 
-                Debug.Log($"Vertical Velocity is {velocity.y}");
                 if (velocity.y > 0)
                 {
                     m_Animator.SetFloat("verticalVelocity", Mathf.Clamp01(velocity.y / m_MaxVerticalVelocity));
