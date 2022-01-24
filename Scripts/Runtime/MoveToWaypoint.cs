@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using SensorToolkit;
+using UnityEngine.Serialization;
 #if PHOTOSESSION_PRESENT
 using Rowlan.PhotoSession;
 #endif
@@ -16,16 +17,20 @@ namespace WizardsCode.AI
         Sensor WaypointSensor;
         [SerializeField, Tooltip("The sensor for detecting when the target waypoint has been reached.")]
         Sensor WaypoinArrivalSensor;
+        [SerializeField, Tooltip("The waypoint prefab to use when getting the object to move out of a stuck state.")]
+        WayPoint waypointPrefab;
         [SerializeField, Tooltip("Strategy for selecting the next waypoint when one is not currently selected.")]
         SelectionStrategy strategy = SelectionStrategy.nearest;
         [SerializeField, Tooltip("Randomness in the selection of the next waypoint. The higher this value the more randomness there will be."), Range(0f, 1f)]
         float randomness = 0.2f;
+        [SerializeField, Tooltip("The radius that is used for the turning circle of the body. 0 means the body can turn on the spot. Note that a turning radius that is too close to the Waypoint Arrival sensor range will likely cause problems.")]
+        [Range(0f, 100f)]
+        float turningRadius = 15;
 
         [Header("Steering")]
-        [SerializeField, Tooltip("The waypoint prefab to use when getting the object to move out of a stuck state.")]
-        WayPoint waypointPrefab;
         [SerializeField, Tooltip("The rig for steering towards the currently selected waypoint.")]
-        SteeringRig Steering;
+        [FormerlySerializedAs("Steering")] // changed 1/23/22
+        SteeringRig SteeringRig;
         [SerializeField, Tooltip("How long should the object be in the same place, if it has an existing waypoint destination, before it is assumed to be stuck. When stuck a new waypoint will be created a few meters away roughly behind the current position.")]
         float stuckDuration = 0.5f;
         [SerializeField, Tooltip("The tolerance to use when deciding if the item is stuck. If the object moves more than this distance in any direction in the `stuckDuration` then it will be considered to be moving.")]
@@ -34,11 +39,14 @@ namespace WizardsCode.AI
         bool faceTowardsTarget = false;
 
         [Header("Arrival Behaviours")]
-        [SerializeField, Tooltip("Should the camera take a photo when arriving at a sensor.")]
+        [SerializeField, Tooltip("If you have [Photo Session](https://github.com/TheWizardsCode/PhotoSession) and this setting is true then a new photo will be taken each time the target reaches a waypoint. " +
+            "Note if this is set to true but the Phot Session code is not present a warning will be displayed in the console.")]
         bool m_TakePhotoOnArrival = true;
 
         [Header("Configuration")]
-        [SerializeField, Tooltip("If set to true then the camera will look for waypoints on start, select one at random and the camera follow target will be teleported to it. If set to false, or if no waypoint is found, then the camera will not be moved at startup.")]
+        [SerializeField, Tooltip("If true the body will select a random waypoint as its starting position. " +
+            "However, these waypoints must be present in the scene on start, spawned waypoints will not be considered. " +
+            "If no waypoint is found then no change will be made to the start position.")]
         bool m_RandomizeStartingPosition = false;
 
         WayPoint m_currentWaypoint;
@@ -91,14 +99,14 @@ namespace WizardsCode.AI
                     m_currentWaypoint = value;
                     if (m_currentWaypoint != null)
                     {
-                        Steering.IgnoreList.Clear();
-                        Steering.IgnoreList.Add(m_currentWaypoint.gameObject);
-                        Steering.IgnoreList.Add(gameObject);
-                        Steering.DestinationTransform = m_currentWaypoint.transform;
+                        SteeringRig.IgnoreList.Clear();
+                        SteeringRig.IgnoreList.Add(m_currentWaypoint.gameObject);
+                        SteeringRig.IgnoreList.Add(gameObject);
+                        SteeringRig.DestinationTransform = m_currentWaypoint.transform;
 
                         if (faceTowardsTarget)
                         {
-                            Steering.FaceTowardsTransform = m_currentWaypoint.transform; 
+                            SteeringRig.FaceTowardsTransform = m_currentWaypoint.transform; 
                         }
                     }
                 }
@@ -128,7 +136,7 @@ namespace WizardsCode.AI
             {
                 OnWaypointArrival();
 
-                Vector3 pos = -transform.forward * Random.Range(Steering.StoppingDistance * 2.5f, Steering.StoppingDistance * 3.5f);
+                Vector3 pos = -transform.forward * Random.Range(SteeringRig.StoppingDistance * 2.5f, SteeringRig.StoppingDistance * 3.5f);
                 pos += transform.right * Random.Range(-0.5f, -0.5f);
                 pos += transform.up * Random.Range(0.5f, 1f);
                 GameObject go = Instantiate(waypointPrefab.gameObject, transform.position + pos, Quaternion.identity);
@@ -234,6 +242,8 @@ namespace WizardsCode.AI
                 }
             }
 
+            if (currentWaypoint == null || turningRadius == 0) return;
+
             Transform root = transform.root;
             Vector3 heading = currentWaypoint.transform.position - root.position;
             float dot = Vector3.Dot(heading, root.forward);
@@ -250,7 +260,7 @@ namespace WizardsCode.AI
                     leftRight = -root.right;
                 }
 
-                Vector3 pos = transform.position + (leftRight * 15) + (root.forward * 15);
+                Vector3 pos = transform.position + (leftRight * turningRadius) + (root.forward * turningRadius);
                 //FIXME: this needs to be set at a height above the terrain as there is a danger that it will be set into a slope and be inacessible
                 pos.y = root.position.y;
                 currentWaypoint.transform.position = pos;
