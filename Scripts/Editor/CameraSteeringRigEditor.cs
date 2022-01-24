@@ -32,7 +32,6 @@ namespace WizardsCode.AIEditor
         SerializedProperty maxVerticalVelocity;
         SerializedProperty maxForwardVelocity;
         SerializedProperty animationController;
-        SerializedProperty legacyAnimationController;
         SerializedProperty randomizeX;
         SerializedProperty randomizeY;
         SerializedProperty randomizeZ;
@@ -66,7 +65,6 @@ namespace WizardsCode.AIEditor
             maxHeight = serializedObject.FindProperty("maxHeight");
             optimalHeight = serializedObject.FindProperty("optimalHeight");
             animationController = serializedObject.FindProperty("m_Animator");
-            legacyAnimationController = serializedObject.FindProperty("m_LegacyAnimation");
             maxVerticalVelocity = serializedObject.FindProperty("m_MaxVerticalVelocity");
             maxForwardVelocity = serializedObject.FindProperty("m_MaxForwardVelocity");
             randomizeX = serializedObject.FindProperty("m_RandomizeX");
@@ -118,9 +116,12 @@ namespace WizardsCode.AIEditor
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Animation", EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(animationController);
-                EditorGUILayout.PropertyField(legacyAnimationController);
-                EditorGUILayout.PropertyField(maxVerticalVelocity);
-                EditorGUILayout.PropertyField(maxForwardVelocity);
+                if (animationController.objectReferenceValue != null)
+                {
+                    EditorGUILayout.PropertyField(maxVerticalVelocity);
+                    EditorGUILayout.PropertyField(maxForwardVelocity);
+                }
+
 
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Height Management", EditorStyles.boldLabel);
