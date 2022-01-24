@@ -194,11 +194,11 @@ namespace WizardsCode.AI
             {
                 if (height < minHeight)
                 {
-                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, MoveForce, Mathf.Clamp01((minHeight - height) / minHeight)));
+                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, MoveForce * 3, Mathf.Clamp01((minHeight - height) / minHeight)));
                 }
                 else
                 {
-                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, MoveForce, Mathf.Clamp01((optimalHeight - height) / optimalHeight)));
+                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, MoveForce * 2, Mathf.Clamp01((optimalHeight - height) / optimalHeight)));
                 }
             }
         }
