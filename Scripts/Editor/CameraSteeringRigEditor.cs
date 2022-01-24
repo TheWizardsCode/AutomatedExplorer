@@ -122,7 +122,6 @@ namespace WizardsCode.AIEditor
                     EditorGUILayout.PropertyField(maxForwardVelocity);
                 }
 
-
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Height Management", EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(maintainHeight);

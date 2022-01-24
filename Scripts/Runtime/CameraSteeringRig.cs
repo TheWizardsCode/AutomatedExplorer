@@ -34,8 +34,6 @@ namespace WizardsCode.AI
 
         [SerializeField, Tooltip("The animation controller for updating speed accordingly.")]
         private Animator m_Animator;
-        [SerializeField, Tooltip("If you model is using the legacy animation system all is not lost, set it here and we will do the rest.")]
-        private Animation m_LegacyAnimation;
 
         [SerializeField, Tooltip("Should forces be applied randomly in the x direction.")]
         private bool m_RandomizeX = true;
@@ -63,16 +61,6 @@ namespace WizardsCode.AI
             if (m_Animator)
             {
                 originalSpeed = m_Animator.speed;
-            }
-            else if (m_LegacyAnimation)
-            {
-                Debug.LogWarning("You are randomizing speed with a legacy animator. This will work fine if all clips have the same speed. Otherwise they will be adjusted to an identical speed making some animations look off. This is a limitation of the curent code and is unlikely to be fixed given this is for legacy animations. Patches welcome if you actually have a need.");
-                float speed = 0;
-                foreach (AnimationState state in m_LegacyAnimation)
-                {
-                    speed += state.speed;
-                }
-                originalSpeed = speed / m_LegacyAnimation.GetClipCount();
             }
         }
 
@@ -141,7 +129,7 @@ namespace WizardsCode.AI
             {
                 if (Random.value < 0.7)
                 {
-                    targetX = MoveForce * (1 + Random.Range(-m_RandomizationFactor, m_RandomizationFactor));
+                    targetX = StrafeForce * (1 + Random.Range(-m_RandomizationFactor, m_RandomizationFactor));
                 }
             }
             if (m_RandomizeY)
@@ -160,13 +148,6 @@ namespace WizardsCode.AI
                     if (m_Animator)
                     {
                         m_Animator.speed = originalSpeed * targetZ;
-                    }
-                    else if (m_LegacyAnimation)
-                    {
-                        foreach (AnimationState state in m_LegacyAnimation)
-                        {
-                            state.speed = targetZ;
-                        }
                     }
 
                     targetZ *= MoveForce;
