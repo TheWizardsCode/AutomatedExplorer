@@ -17,12 +17,19 @@ namespace WizardsCode.AI.Editor
         [MenuItem("Tools/Wizards Code/AI/Add Automated Explorer Camera")]
         static void AddAutomatedExplorerCam() {
             Vector3 centerPos = FindCenterPosition();
+            Camera camera = Camera.main;
+
+            if (camera == null)
+            {
+                EditorUtility.DisplayDialog("Can't find camer", "You do not have a camera marke as main. Please mark the camera you want to use as the automated camera and try again.", "OK");
+                return;
+            }
 
             // Add Cinemachine Brain to Main Camera
-            CinemachineBrain brain = Camera.main.gameObject.GetComponent<CinemachineBrain>();
+            CinemachineBrain brain = camera.gameObject.GetComponent<CinemachineBrain>();
             if (brain == null)
             {
-                Camera.main.gameObject.AddComponent<CinemachineBrain>();
+                camera.gameObject.AddComponent<CinemachineBrain>();
             }
 
             // Add Camera Follow Target prefab
@@ -38,6 +45,8 @@ namespace WizardsCode.AI.Editor
             assets = AssetDatabase.FindAssets("t:prefab " + followVCamPrefabName);
             path = AssetDatabase.GUIDToAssetPath(assets[0]);
             go = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(path)) as GameObject;
+            go.transform.position = camera.transform.position;
+            go.transform.rotation = camera.transform.rotation;
 
             CinemachineVirtualCamera vcam = go.GetComponent<CinemachineVirtualCamera>();
             vcam.gameObject.name = followVCamPrefabName;
@@ -49,6 +58,8 @@ namespace WizardsCode.AI.Editor
             assets = AssetDatabase.FindAssets("t:prefab " + waypointSpawnerPrefabName);
             path = AssetDatabase.GUIDToAssetPath(assets[0]);
             go = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(path)) as GameObject;
+            go.transform.position = Vector3.zero;
+            go.transform.rotation = Quaternion.identity;
 
             BoxAreaSpawner spawner = go.GetComponent<BoxAreaSpawner>();
             spawner.gameObject.name = waypointSpawnerPrefabName;
