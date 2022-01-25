@@ -26,7 +26,7 @@ Setup your Rigid body for the mass and drag of the body. For Unka we used this s
 
 The steering rig applies forces to the rigid body. Using these settings you can make flight look effortless or labored. The precise settings will depend on what you are looking for and the values set in the Rigid Body. For this example we used the follwing settings:
 
-![Configure Unka's Steering Rig](UnkaSteeringRig.png)
+![Configure Unka's Steering Rig](images/UnkaSteeringRig.png)
 
 # Animation
 
@@ -46,7 +46,7 @@ You will need an animation controller that uses the following parameters which w
   * `verticalVelocity` - the current up/down velocity
   * `forwardVelocity` - the current forward/backward velocity. 
 
-How you setup this controller is entirely up to you. We have provdided an example for Unka in `Animations/Unka Animation Controller`. This uses a blend tree setup and we find it works well. Note, to use it you will probably have to add the animations into the controller after you have imported Unka.
+How you setup this controller is entirely up to you. We have provided an example for Unka in `Packacges/Wizards Code - Automated Explorer/Animations/Unka Animation Controller`. This uses a blend tree setup and we find it works well. Note, to use it you will have to add the animations into the controller after you have imported Unka.
 
 ## Sounds Conroller
 
