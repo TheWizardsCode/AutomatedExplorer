@@ -73,9 +73,11 @@ namespace WizardsCode.AI
         {
             base.FixedUpdate();
 
-            MaintainHeight();
+            Vector3 additionalForce = MaintainHeight();
 
-            ApplyRandomizationForce();
+            additionalForce += ApplyRandomizationForce();
+
+            RB.AddForce(additionalForce);
 
             SetAnimationParameters();
         }
@@ -112,14 +114,17 @@ namespace WizardsCode.AI
         /// <summary>
         /// Calculate a random force that will be added to the object to add variation to the flight.
         /// </summary>
-        private void ApplyRandomizationForce()
+        private Vector3 ApplyRandomizationForce()
         {
-            if (!(m_RandomizeX || m_RandomizeX || m_RandomizeX)) return;
+            Vector3 randomForce = Vector3.zero;
+            if (!(m_RandomizeX || m_RandomizeX || m_RandomizeX)) return randomForce;
+
             if (timeOFRandomization > Time.timeSinceLevelLoad)
             {
-                RB.AddForce(Vector3.Slerp(Vector3.zero, targetRandomizationForce, (Time.timeSinceLevelLoad - timeOFRandomization) / m_RandomizationFrequency));
-                return;
+                randomForce = Vector3.Slerp(Vector3.zero, targetRandomizationForce, (Time.timeSinceLevelLoad - timeOFRandomization) / m_RandomizationFrequency);
+                return randomForce;
             }
+
             timeOFRandomization = Time.timeSinceLevelLoad + m_RandomizationFrequency;
 
             float targetX = 0;
@@ -155,12 +160,19 @@ namespace WizardsCode.AI
             }
 
             targetRandomizationForce = new Vector3(targetX, targetY, targetZ);
+
+            return Vector3.Slerp(Vector3.zero, targetRandomizationForce, (Time.timeSinceLevelLoad - timeOFRandomization) / m_RandomizationFrequency);
         }
 
-        private void MaintainHeight()
-        {
 
-            if (!m_MaintainHeight) return;
+        /// <summary>
+        /// Get a force that is used to adjuste the height of the body based on the Height Management settings.
+        /// </summary>
+        /// <returns>A force to be applied to the body.</returns>
+        private Vector3 MaintainHeight()
+        {
+            Vector3 heightAdjustmentForce = Vector3.zero;
+            if (!m_MaintainHeight) return heightAdjustmentForce;
             
             RaycastHit hit;
             float height = 0;
@@ -171,7 +183,7 @@ namespace WizardsCode.AI
             else
             {
                 Debug.LogWarning($"{name} has `Maintain Height` enabled but therre is no raycast hit below it. Relying on Steering Behaviours to keep things in order.");
-                return;
+                return heightAdjustmentForce;
             }
 
             /* What was this for? doesn't really do anything useful that I can think of. Commented out to see what it does... 1/24/22 
@@ -183,24 +195,26 @@ namespace WizardsCode.AI
             {
                 if (height > maxHeight)
                 {
-                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, -MoveForce, Mathf.Clamp01((height - maxHeight) / maxHeight)));
+                    heightAdjustmentForce = -RB.transform.up * Mathf.Lerp(0, MoveForce, Mathf.Clamp01((height - maxHeight) / maxHeight));
                 } 
                 else
                 {
-                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, -MoveForce, Mathf.Clamp01((height - optimalHeight) / optimalHeight)));
+                    heightAdjustmentForce = -RB.transform.up * Mathf.Lerp(0, MoveForce, Mathf.Clamp01((height - optimalHeight) / optimalHeight));
                 }
             }
             else if (height < optimalHeight)
             {
                 if (height < minHeight)
                 {
-                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, MoveForce * 3, Mathf.Clamp01((minHeight - height) / minHeight)));
+                    heightAdjustmentForce = RB.transform.up * Mathf.Lerp(0, MoveForce * 3, Mathf.Clamp01((minHeight - height) / minHeight));
                 }
                 else
                 {
-                    RB.AddForce(RB.transform.up * Mathf.Lerp(0, MoveForce * 2, Mathf.Clamp01((optimalHeight - height) / optimalHeight)));
+                    heightAdjustmentForce = RB.transform.up * Mathf.Lerp(0, MoveForce * 2, Mathf.Clamp01((optimalHeight - height) / optimalHeight));
                 }
             }
+
+            return heightAdjustmentForce;
         }
     }
 }
