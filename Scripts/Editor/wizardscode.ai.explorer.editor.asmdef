@@ -4,7 +4,7 @@
     "references": [
         "wizardscode.ai.explorer",
         "Cinemachine",
-        "microsmo.sensortoolkit"
+        "micosmo.sensortoolkit"
     ],
     "includePlatforms": [
         "Editor"

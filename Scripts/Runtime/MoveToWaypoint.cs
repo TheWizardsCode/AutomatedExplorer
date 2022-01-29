@@ -14,29 +14,28 @@ namespace WizardsCode.AI
 
         [Header("Sensors")]
         [SerializeField, Tooltip("The sensor for detecting waypoints.")]
-        Sensor WaypointSensor;
+        RangeSensor m_WaypointSensor;
         [SerializeField, Tooltip("The sensor for detecting when the target waypoint has been reached.")]
-        Sensor WaypoinArrivalSensor;
+        TriggerSensor m_WaypoinArrivalSensor;
         [SerializeField, Tooltip("The waypoint prefab to use when getting the object to move out of a stuck state.")]
-        WayPoint waypointPrefab;
+        WayPoint m_waypointPrefab;
         [SerializeField, Tooltip("Strategy for selecting the next waypoint when one is not currently selected.")]
-        SelectionStrategy strategy = SelectionStrategy.nearest;
+        SelectionStrategy m_SelectionStrategy = SelectionStrategy.nearest;
         [SerializeField, Tooltip("Randomness in the selection of the next waypoint. The higher this value the more randomness there will be."), Range(0f, 1f)]
-        float randomness = 0.2f;
+        float m_SelectionRandomness = 0.2f;
+        /*
         [SerializeField, Tooltip("The radius that is used for the turning circle of the body. 0 means the body can turn on the spot. Note that a turning radius that is too close to the Waypoint Arrival sensor range will likely cause problems.")]
         [Range(0f, 100f)]
-        float turningRadius = 15;
+        float m_TurningRadius = 15;
+        */
 
         [Header("Steering")]
         [SerializeField, Tooltip("The rig for steering towards the currently selected waypoint.")]
-        [FormerlySerializedAs("Steering")] // changed 1/23/22
-        SteeringRig SteeringRig;
+        FlyingSteeringRig m_SteeringRig;
         [SerializeField, Tooltip("How long should the object be in the same place, if it has an existing waypoint destination, before it is assumed to be stuck. When stuck a new waypoint will be created a few meters away roughly behind the current position.")]
-        float stuckDuration = 0.5f;
+        float m_StuckDuration = 0.5f;
         [SerializeField, Tooltip("The tolerance to use when deciding if the item is stuck. If the object moves more than this distance in any direction in the `stuckDuration` then it will be considered to be moving.")]
-        float stuckTolerance = 0.05f;
-        [SerializeField, Tooltip("If set to true the sensor rig will be set to rotate towards the selected target waypoint.")]
-        bool faceTowardsTarget = false;
+        float m_StuckTolerance = 0.05f;
 
         [Header("Arrival Behaviours")]
         [SerializeField, Tooltip("If you have [Photo Session](https://github.com/TheWizardsCode/PhotoSession) and this setting is true then a new photo will be taken each time the target reaches a waypoint. " +
@@ -62,10 +61,10 @@ namespace WizardsCode.AI
         {
             if (m_RandomizeStartingPosition)
             {
-                WaypointSensor.Pulse();
-                if (WaypointSensor.DetectedObjects.Count > 0)
+                m_WaypointSensor.Pulse();
+                if (m_WaypointSensor.DetectedObjects.Count > 0)
                 {
-                    WayPoint start = WaypointSensor.DetectedObjects[Random.Range(0, WaypointSensor.DetectedObjects.Count)].GetComponent<WayPoint>();
+                    WayPoint start = m_WaypointSensor.DetectedObjects[Random.Range(0, m_WaypointSensor.DetectedObjects.Count)].GetComponent<WayPoint>();
                     if (start)
                     {
                         transform.position = start.transform.position;
@@ -74,8 +73,8 @@ namespace WizardsCode.AI
                 }
             }
 
-            timeToStuck = stuckDuration;
-            sqrStuckTolerance = stuckTolerance * stuckTolerance;
+            timeToStuck = m_StuckDuration;
+            sqrStuckTolerance = m_StuckTolerance * m_StuckTolerance;
 
 #if PHOTOSESSION_PRESENT
             photoSession = GameObject.FindObjectOfType<PhotoSession>();
@@ -97,17 +96,9 @@ namespace WizardsCode.AI
                 if (m_currentWaypoint != value)
                 {
                     m_currentWaypoint = value;
-                    if (m_currentWaypoint != null)
+                    if (currentWaypoint != null && m_SteeringRig != null)
                     {
-                        SteeringRig.IgnoreList.Clear();
-                        SteeringRig.IgnoreList.Add(m_currentWaypoint.gameObject);
-                        SteeringRig.IgnoreList.Add(gameObject);
-                        SteeringRig.DestinationTransform = m_currentWaypoint.transform;
-
-                        if (faceTowardsTarget)
-                        {
-                            SteeringRig.FaceTowardsTransform = m_currentWaypoint.transform; 
-                        }
+                        m_SteeringRig.destination = currentWaypoint.transform;
                     }
                 }
             }
@@ -123,7 +114,7 @@ namespace WizardsCode.AI
                 } else
                 {
                     oldPosition = transform.position;
-                    timeToStuck = stuckDuration;
+                    timeToStuck = m_StuckDuration;
                 }
 
                 return timeToStuck <= 0;
@@ -136,23 +127,24 @@ namespace WizardsCode.AI
             {
                 OnWaypointArrival();
 
-                Vector3 pos = -transform.forward * Random.Range(SteeringRig.StoppingDistance * 2.5f, SteeringRig.StoppingDistance * 3.5f);
+                Vector3 pos = -transform.forward * Random.Range(2.5f, 3.5f);
                 pos += transform.right * Random.Range(-0.5f, -0.5f);
                 pos += transform.up * Random.Range(0.5f, 1f);
-                GameObject go = Instantiate(waypointPrefab.gameObject, transform.position + pos, Quaternion.identity);
+                
+                GameObject go = Instantiate(m_waypointPrefab.gameObject, transform.position + pos, Quaternion.identity);
                 go.name = stuckWaypointName;
                 currentWaypoint = go.GetComponent<WayPoint>();
                 oldPosition = transform.position;
-                timeToStuck = stuckDuration;
+                timeToStuck = m_StuckDuration;
 
-                WaypointSensor.Pulse();
+                m_WaypointSensor.Pulse();
             }
 
             if (!currentWaypoint)
             {
                 SelectNewWaypoint();
             } 
-            else if (WaypoinArrivalSensor.IsDetected(currentWaypoint.gameObject))
+            else if (m_WaypoinArrivalSensor.IsDetected(currentWaypoint.gameObject))
             {
                 OnWaypointArrival();
             }
@@ -181,7 +173,7 @@ namespace WizardsCode.AI
             {
                 currentWaypoint.Disable();
             }
-            WaypointSensor.Pulse();
+            m_WaypointSensor.Pulse();
             lastWaypoint = currentWaypoint;
             currentWaypoint = null;
 
@@ -221,7 +213,7 @@ namespace WizardsCode.AI
                 }
                 else
                 {
-                    switch (strategy)
+                    switch (m_SelectionStrategy)
                     {
                         case SelectionStrategy.nearest:
                             currentWaypoint = GetWeightedNearestFromPointWithComponent(transform.position);
@@ -230,54 +222,51 @@ namespace WizardsCode.AI
                             currentWaypoint = GetWeightedFurthestFromPointWithComponent(transform.position);
                             break;
                         case SelectionStrategy.random:
-                            if (WaypointSensor.DetectedObjects.Count > 0)
+                            if (m_WaypointSensor.DetectedObjects.Count > 0)
                             {
-                                currentWaypoint = WaypointSensor.DetectedObjects[Random.Range(0, WaypointSensor.DetectedObjects.Count)].GetComponent<WayPoint>();
+                                currentWaypoint = m_WaypointSensor.DetectedObjects[Random.Range(0, m_WaypointSensor.DetectedObjects.Count)].GetComponent<WayPoint>();
                             }
                             break;
                         default:
-                            Debug.LogError("Unknown selection strategy: " + strategy);
+                            Debug.LogError("Unknown selection strategy: " + m_SelectionStrategy);
                             break;
                     }
                 }
             }
 
-            if (currentWaypoint == null || turningRadius == 0) return;
+            if (currentWaypoint == null) return;
 
+            /* create a turning circle if the next waypoint will cause the body to flip
             Transform root = transform.root;
             Vector3 heading = currentWaypoint.transform.position - root.position;
-            float dot = Vector3.Dot(heading, root.forward);
-            if ( dot < 0.5)
+            float dot = Vector3.Dot(heading.normalized, root.forward.normalized);
+            if ( dot < 0.3)
             {
                 nextWaypoint = currentWaypoint;
-                currentWaypoint = Instantiate(waypointPrefab);
+                currentWaypoint = Instantiate(m_waypointPrefab);
                 currentWaypoint.name = $"Turning waypoint (heading to {nextWaypoint}).";
-                Vector3 leftRight = Vector3.zero;
-                if (Vector3.SignedAngle(currentWaypoint.transform.position, root.position, Vector3.up) > 0) {
-                    leftRight = root.right;
-                } else
-                {
-                    leftRight = -root.right;
-                }
+                currentWaypoint.reEnableWaitTime = 0;
 
-                Vector3 pos = transform.position + (leftRight * turningRadius) + (root.forward * turningRadius);
+                //TODO: Don't always turn right, decide the least obstructed path and go that way
+                Vector3 pos = transform.position + (root.right * m_TurningRadius) + (root.forward * m_TurningRadius) + (root.up * 2);
                 //FIXME: this needs to be set at a height above the terrain as there is a danger that it will be set into a slope and be inacessible
                 pos.y = root.position.y;
                 currentWaypoint.transform.position = pos;
             }
+            */
         }
 
         private WayPoint GetWeightedFurthestFromPointWithComponent(Vector3 point)
         {
             WayPoint furthest = null;
             var furthestDistance = 0f;
-            var gos = WaypointSensor.DetectedObjectsOrderedByDistance;
+            var gos = m_WaypointSensor.DetectedObjectsOrderedByDistance;
             for (int i = 0; i < gos.Count; i++)
             {
                 WayPoint waypoint = gos[i].GetComponent<WayPoint>();
                 if (waypoint == null) { continue; }
 
-                float weight = waypoint.weight + Random.Range(0, randomness);
+                float weight = waypoint.weight + Random.Range(0, m_SelectionRandomness);
                 var weightedDistance = Vector3.SqrMagnitude(waypoint.transform.position - point) * weight;
                 if (furthest == null || weightedDistance > furthestDistance)
                 {
@@ -292,13 +281,13 @@ namespace WizardsCode.AI
         {
             WayPoint nearest = null;
             var nearestDistance = 0f;
-            var gos = WaypointSensor.DetectedObjectsOrderedByDistance;
+            var gos = m_WaypointSensor.DetectedObjectsOrderedByDistance;
             for (int i = 0; i < gos.Count; i++)
             {
                 WayPoint waypoint = gos[i].GetComponent<WayPoint>();
                 if (waypoint == null) { continue; }
 
-                float weight = 1.001f - (waypoint.weight + Random.Range(0, randomness));
+                float weight = 1.001f - (waypoint.weight + Random.Range(0, m_SelectionRandomness));
 
                 float weightedDistance = Vector3.SqrMagnitude(waypoint.transform.position - point) * weight;
                 if (nearest == null || weightedDistance < nearestDistance)
@@ -308,6 +297,15 @@ namespace WizardsCode.AI
                 }
             }
             return nearest;
+        }
+
+        private void OnValidate()
+        {
+            if (m_SteeringRig == null) m_SteeringRig = GetComponentInChildren<FlyingSteeringRig>();
+
+            if (m_WaypointSensor == null) m_WaypointSensor = GetComponentInChildren<RangeSensor>();
+
+            if (m_WaypoinArrivalSensor == null) m_WaypoinArrivalSensor = GetComponentInChildren<TriggerSensor>();
         }
     }
 }
