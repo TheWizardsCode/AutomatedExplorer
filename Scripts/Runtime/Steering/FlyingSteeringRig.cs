@@ -160,6 +160,10 @@ namespace WizardsCode.AI
                 moveDirection += repulsion * 100;
             }
 
+
+            Vector3 currentDirection = rigidbody.transform.forward;
+            Vector3.Lerp(currentDirection, moveDirection, Time.deltaTime * 4);
+
             // Rotate towards the desired direction
             float angle;
             Vector3 axis;
@@ -186,9 +190,6 @@ namespace WizardsCode.AI
             float verticalForce = 0;
             if (verticalDotMove > 0) {
                 verticalForce = Mathf.Lerp(0, m_MaxVerticalForce, Mathf.Clamp01(verticalDotMove));
-            } else
-            {
-                verticalForce = Mathf.Lerp(0, -m_MaxVerticalForce, Mathf.Clamp01(verticalDotMove));
             }
 
             // Add the forces
