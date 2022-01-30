@@ -190,7 +190,7 @@ namespace WizardsCode.Spawning
                     }
                     else
                     {
-                        Debug.LogWarning($"{name} has `AdjustHeight` enabled but there is no raycast hit below it. Relying on the initial spawn positions height.");
+                        Debug.LogWarning($"{name} has `AdjustHeight` enabled but there is no raycast hit below {pos}. Relying on the initial spawn positions height.");
                     }
                 }
 
