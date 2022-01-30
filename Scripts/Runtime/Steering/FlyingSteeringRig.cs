@@ -25,6 +25,9 @@ namespace WizardsCode.AI
         float m_MaxForwardForce = 10;
         [SerializeField, Tooltip("The maximum forward velocity for this body.")]
         internal float maxSpeed = 8;
+        [SerializeField, Tooltip("The maximum distance that can be steered from the target direction. Setting this higher will allow the body to go more away from a direct line to the target.")]
+        [Range(1f, 5f)]
+        float m_MaxAvoidanceLength = 2f;
         [SerializeField, Tooltip("The body will attempt to avoid colliders on these layers.")]
         LayerMask m_AvoidanceLayers;
 
@@ -59,6 +62,7 @@ namespace WizardsCode.AI
         private float originalAnimationSpeed;
         private static Mesh cylinderCache;
         private Sensor[] sensorArray;
+        int nextSensorToPulse = 0;
 
         /// <summary>
         /// The transform of the current destination the object is flying to.
@@ -89,7 +93,7 @@ namespace WizardsCode.AI
             sensors.Add(new Sensor(transform.up - transform.right, 0, maxSpeed * 0.7f, m_AvoidanceLayers)); // up/left
             sensors.Add(new Sensor(transform.up + transform.right, 0, maxSpeed * 0.7f, m_AvoidanceLayers)); // up/right
 
-            sensors.Add(new Sensor(-transform.up, 0, m_OptimalHeight, 0.2f, 0.5f, m_AvoidanceLayers)); // down
+            sensors.Add(new Sensor(-transform.up, 0, m_OptimalHeight, 0.1f, m_AvoidanceLayers)); // down
             sensors.Add(new Sensor(-transform.up - transform.right, 0, m_MinHeight, m_AvoidanceLayers)); // down/left
             //sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight, m_AvoidanceLayers)); // down/forward
             sensors.Add(new Sensor(-transform.up + transform.right, 0, m_MinHeight, m_AvoidanceLayers)); // down/right
@@ -99,30 +103,19 @@ namespace WizardsCode.AI
         /// <summary>
         /// Get a direction that will push the object away from detected obstacles.
         /// </summary>
-        Vector3 GetCalculateRepulsionDirection()
+        Vector3 GetRepulsionDirection()
         {
-            Vector3 strength = Vector3.zero;
+            sensorArray[nextSensorToPulse].Pulse(this);
+            nextSensorToPulse++;
+            if (nextSensorToPulse == sensorArray.Length) nextSensorToPulse = 0;
 
+            Vector3 strength = Vector3.zero;
             for (int i = 0; i < sensorArray.Length; i++)
             {
-                strength += CheckRepulsionFrom(sensorArray[i]);
+                strength += sensorArray[i].lastObstructionRatio;
             }
 
             return strength * Mathf.Clamp(strength.magnitude, 0, m_MaxAvoidanceLength);
-        }
-
-        private Vector3 CheckRepulsionFrom(Sensor sensor)
-        {
-            //OPTIMIZATION: don't pulse every frame
-            if (sensor.Pulse(this))
-            {
-                float obstructionRatio = Mathf.Pow(1f - (sensor.hit.distance / sensor.maxLength), 1f / m_AvoidanceSensitivity);
-                return obstructionRatio * sensor.hit.normal;
-            }
-            else
-            {
-                return Vector3.zero;
-            }
         }
         private void Start()
         {
@@ -158,7 +151,7 @@ namespace WizardsCode.AI
                 moveDirection += desiredDirection;
             }
             
-            Vector3 repulsion = GetCalculateRepulsionDirection();
+            Vector3 repulsion = GetRepulsionDirection();
             if (repulsion.sqrMagnitude > 0.01f)
             {
                 moveDirection += repulsion.normalized;
@@ -313,9 +306,22 @@ namespace WizardsCode.AI
 
         public float avoidanceSensitivity = 0.6f;
 
-        public float maxAvoidanceLength = 1.2f;
-
         private LayerMask avoidanceLayers;
+        internal Vector3 lastObstructionRatio
+        {
+            get
+            {
+                if (obstructionHit)
+                {
+                    float obstructionRatio = Mathf.Pow(1f - (hit.distance / maxLength), 1f / avoidanceSensitivity);
+                    return obstructionRatio * hit.normal;
+                }
+                else
+                {
+                    return Vector3.zero;
+                }
+            }
+        }
 
         public Sensor(Vector3 direction, float radius, float maxLength, LayerMask avoidanceLayers) {
             this.sensorDirection = direction;
@@ -324,13 +330,12 @@ namespace WizardsCode.AI
             this.avoidanceLayers = avoidanceLayers;
         }
 
-        public Sensor(Vector3 direction, float radius, float maxLength, float avoidanceSensitivity, float maxAvoidanceLength, LayerMask avoidanceLayers)
+        public Sensor(Vector3 direction, float radius, float maxLength, float avoidanceSensitivity, LayerMask avoidanceLayers)
         {
             this.sensorDirection = direction;
             this.radius = radius;
             this.maxLength = maxLength;
             this.avoidanceSensitivity = avoidanceSensitivity;
-            this.maxAvoidanceLength = maxAvoidanceLength;
             this.avoidanceLayers = avoidanceLayers;
         }
 
