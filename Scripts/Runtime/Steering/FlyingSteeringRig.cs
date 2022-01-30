@@ -25,7 +25,6 @@ namespace WizardsCode.AI
         float m_MaxForwardForce = 10;
         [SerializeField, Tooltip("The maximum forward velocity for this body.")]
         internal float maxSpeed = 8;
-        [SerializeField, Tooltip("How sensitive the body is to obstacles. Lower numbers mean the body will move closer to obstacles. Set this high enough that the model does not clip objects, the larger the model the higher this value needs to be.")]
         [SerializeField, Tooltip("The body will attempt to avoid colliders on these layers.")]
         LayerMask m_AvoidanceLayers;
 
