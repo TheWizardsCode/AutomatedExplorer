@@ -26,11 +26,6 @@ namespace WizardsCode.AI
         [SerializeField, Tooltip("The maximum forward velocity for this body.")]
         internal float maxSpeed = 8;
         [SerializeField, Tooltip("How sensitive the body is to obstacles. Lower numbers mean the body will move closer to obstacles. Set this high enough that the model does not clip objects, the larger the model the higher this value needs to be.")]
-        [Range(0.1f, 6f)]
-        float m_AvoidanceSensitivity = 1f;
-        [SerializeField, Tooltip("The maximum distance that can be steered from the target direction. Setting this higher will allow the body to go more away from a direct line to the target.")]
-        [Range(1f, 5f)]
-        float m_MaxAvoidanceLength = 2f;
         [SerializeField, Tooltip("The body will attempt to avoid colliders on these layers.")]
         LayerMask m_AvoidanceLayers;
 
@@ -79,12 +74,12 @@ namespace WizardsCode.AI
         private void ConfigureSensors()
         {
             List<Sensor> sensors = new List<Sensor>();
-            sensors.Add(new Sensor(transform.forward, 3, maxSpeed * 0.5f, m_AvoidanceLayers)); // forward
-            sensors.Add(new Sensor(transform.forward * 2 - transform.right, 1f, maxSpeed * 0.6f, m_AvoidanceLayers)); // forward/forward/left
-            sensors.Add(new Sensor(transform.forward - transform.right, 0.5f, maxSpeed * 0.7f, m_AvoidanceLayers)); // forward/left
+            sensors.Add(new Sensor(transform.forward, 3, maxSpeed * 1.5f, m_AvoidanceLayers)); // forward
+            sensors.Add(new Sensor(transform.forward * 2 - transform.right, 1.5f, maxSpeed * 0.6f, m_AvoidanceLayers)); // forward/forward/left
+            sensors.Add(new Sensor(transform.forward - transform.right, 1f, maxSpeed * 0.7f, m_AvoidanceLayers)); // forward/left
             sensors.Add(new Sensor(transform.forward - transform.right * 2, 0, maxSpeed * 0.8f, m_AvoidanceLayers)); // forward/left/left
-            sensors.Add(new Sensor(transform.forward * 2 + transform.right, 1f, maxSpeed * 0.6f, m_AvoidanceLayers)); // forward/forward/right
-            sensors.Add(new Sensor(transform.forward + transform.right, 0.5f, maxSpeed * 0.7f, m_AvoidanceLayers)); // forward/right
+            sensors.Add(new Sensor(transform.forward * 2 + transform.right, 1.5f, maxSpeed * 0.6f, m_AvoidanceLayers)); // forward/forward/right
+            sensors.Add(new Sensor(transform.forward + transform.right, 1f, maxSpeed * 0.7f, m_AvoidanceLayers)); // forward/right
             sensors.Add(new Sensor(transform.forward + transform.right * 2, 0, maxSpeed * 0.8f, m_AvoidanceLayers)); // forward/right/right
 
             sensors.Add(new Sensor(-transform.right, 0, maxSpeed * 0.6f, m_AvoidanceLayers)); // left
@@ -95,9 +90,9 @@ namespace WizardsCode.AI
             sensors.Add(new Sensor(transform.up - transform.right, 0, maxSpeed * 0.7f, m_AvoidanceLayers)); // up/left
             sensors.Add(new Sensor(transform.up + transform.right, 0, maxSpeed * 0.7f, m_AvoidanceLayers)); // up/right
 
-            sensors.Add(new Sensor(-transform.up, 0, m_MinHeight, m_AvoidanceLayers)); // down
+            sensors.Add(new Sensor(-transform.up, 0, m_OptimalHeight, 0.2f, 0.5f, m_AvoidanceLayers)); // down
             sensors.Add(new Sensor(-transform.up - transform.right, 0, m_MinHeight, m_AvoidanceLayers)); // down/left
-            sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight, m_AvoidanceLayers)); // down/forward
+            //sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight, m_AvoidanceLayers)); // down/forward
             sensors.Add(new Sensor(-transform.up + transform.right, 0, m_MinHeight, m_AvoidanceLayers)); // down/right
             sensorArray = sensors.ToArray();
         }
@@ -137,57 +132,6 @@ namespace WizardsCode.AI
                 originalAnimationSpeed = m_Animator.speed;
             }
         }
-
-        /// <summary>
-        /// Get an angle around the x axis that will push the object back to the optimal height if
-        /// not already there. The angle will be the maximum
-        /// allowable vertical climb or dive angle proportional to the required
-        /// height change. However, if the current waypoint requires requires a different height from
-        /// the optimal height then this will return 0.
-        /// </summary>
-        float GetHeightAdjustmentAngle()
-        {
-            if (!m_MaintainHeight) return 0;
-
-            RaycastHit hit;
-            float height = 0;
-            if (Physics.Raycast(rigidbody.transform.position, Vector3.down, out hit, Mathf.Infinity))
-            {
-                height = hit.distance;
-            }
-            else
-            {
-                Debug.LogWarning($"{name} has `Maintain Height` enabled but therre is no raycast hit below it. Relying on Steering Behaviours to keep things in order.");
-                return 0;
-            }
-
-            float angle = 0;
-            if (height < m_OptimalHeight)
-            {
-                if (height < m_MinHeight)
-                {
-                    angle = Mathf.Lerp(0, m_MaxClimbAngle, Mathf.Clamp01((m_MinHeight - height) / m_MinHeight));
-                }
-                else
-                {
-                    angle = Mathf.Lerp(0, m_MaxClimbAngle, Mathf.Clamp01((m_OptimalHeight - height) / m_OptimalHeight));
-                }
-            } else if (height > m_OptimalHeight)
-            {
-                if (destination.position.y > m_OptimalHeight) return 0;
-
-                if (height > m_MaxHeight) {
-                    //do angle dot thingy here
-                    angle = Mathf.Lerp(-m_MaxDiveAngle, 0, Mathf.Clamp01((height - m_MaxHeight) / m_MaxHeight));
-                }
-                else
-                {
-                    angle = Mathf.Lerp(-m_MaxDiveAngle, 0, Mathf.Clamp01((height - m_OptimalHeight) / m_OptimalHeight));
-                }
-            }
-
-            return angle;
-        }
         private bool hasReachedDestination
         {
             get
@@ -224,9 +168,6 @@ namespace WizardsCode.AI
                 moveDirection += repulsion * 100;
             }
 
-            Quaternion heightRotation = Quaternion.Euler(GetHeightAdjustmentAngle(), 0, 0);
-            moveDirection = heightRotation * moveDirection;
-
             // Rotate towards the desired direction
             float angle;
             Vector3 axis;
@@ -235,7 +176,6 @@ namespace WizardsCode.AI
             angle = angle > 180f ? angle - 360f : angle;
             var torque = Mathf.Clamp(angle / 20f, -1f, 1f) * m_MaxTorque;
             rigidbody.AddTorque(axis * torque);
-
 
             // Keep the bottom facing down
             float z = rigidbody.rotation.eulerAngles.z;
@@ -372,12 +312,26 @@ namespace WizardsCode.AI
         public float radius { get; set; }
         public float maxLength { get; set; }
 
+        public float avoidanceSensitivity = 0.6f;
+
+        public float maxAvoidanceLength = 1.2f;
+
         private LayerMask avoidanceLayers;
 
         public Sensor(Vector3 direction, float radius, float maxLength, LayerMask avoidanceLayers) {
             this.sensorDirection = direction;
             this.radius = radius;
             this.maxLength = maxLength;
+            this.avoidanceLayers = avoidanceLayers;
+        }
+
+        public Sensor(Vector3 direction, float radius, float maxLength, float avoidanceSensitivity, float maxAvoidanceLength, LayerMask avoidanceLayers)
+        {
+            this.sensorDirection = direction;
+            this.radius = radius;
+            this.maxLength = maxLength;
+            this.avoidanceSensitivity = avoidanceSensitivity;
+            this.maxAvoidanceLength = maxAvoidanceLength;
             this.avoidanceLayers = avoidanceLayers;
         }
 

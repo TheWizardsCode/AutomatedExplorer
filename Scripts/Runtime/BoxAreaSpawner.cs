@@ -141,9 +141,9 @@ namespace WizardsCode.Spawning
         Vector3 ChooseLocation(WayPoint go)
         {
             Vector3 dimensions = new Vector3(SizeX / 2f, maxHeight - minHeight, SizeZ / 2f);
-            Vector3 randNormalizedVector = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), Random.Range(-1f, 1f));
+            Vector3 randNormalizedVector = new Vector3(Random.Range(-1f, 1f), Random.Range(0, 1f), Random.Range(-1f, 1f));
             Vector3 pos = Vector3.Scale(dimensions, randNormalizedVector) + transform.position;
-            pos.y += minHeight;
+            pos.y += minHeight - transform.position.y;
 
             pos = GetHeightAdjusted(pos, go);
 
