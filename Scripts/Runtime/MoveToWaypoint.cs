@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using SensorToolkit;
-using UnityEngine.Serialization;
 #if PHOTOSESSION_PRESENT
 using Rowlan.PhotoSession;
 #endif

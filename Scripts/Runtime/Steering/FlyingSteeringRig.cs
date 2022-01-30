@@ -94,9 +94,9 @@ namespace WizardsCode.AI
             sensors.Add(new Sensor(transform.up + transform.right, 0, maxSpeed * 0.7f, m_AvoidanceLayers)); // up/right
 
             sensors.Add(new Sensor(-transform.up, 0, m_OptimalHeight, 0.1f, m_AvoidanceLayers)); // down
-            sensors.Add(new Sensor(-transform.up - transform.right, 0, m_MinHeight, m_AvoidanceLayers)); // down/left
-            //sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight, m_AvoidanceLayers)); // down/forward
-            sensors.Add(new Sensor(-transform.up + transform.right, 0, m_MinHeight, m_AvoidanceLayers)); // down/right
+            sensors.Add(new Sensor(-transform.up - transform.right, 0, m_MinHeight * 0.6f, 0.3f, m_AvoidanceLayers)); // down/left
+            sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight * 0.6f, 0.3f, m_AvoidanceLayers)); // down/forward
+            sensors.Add(new Sensor(-transform.up + transform.right, 0, m_MinHeight * 0.6f, 0.3f, m_AvoidanceLayers)); // down/right
             sensorArray = sensors.ToArray();
         }
 
@@ -159,10 +159,6 @@ namespace WizardsCode.AI
             {
                 moveDirection += repulsion * 100;
             }
-
-
-            Vector3 currentDirection = rigidbody.transform.forward;
-            Vector3.Lerp(currentDirection, moveDirection, Time.deltaTime * 4);
 
             // Rotate towards the desired direction
             float angle;
