@@ -4,6 +4,8 @@ This is an Automated Explorer that will explore your scene for you. You can see 
 
 Note, although the implementation can be made to work in internal spaces it has not been tested and we expect challenges in many such scenes. There is no pathfinding, only sensor movement, and so the current implementation is unable to identify an optimal path. However, it should be possible to use an algorithm such as A* to pathfind and then place waypoints along this path. In this situation the sensor navigation would then avoid obstacles in 3D space along the path. We would love a PR to implement this.
 
+IMPORTANT: this code is dependent on the excellent [Sensor Toolkit](https://assetstore.unity.com/packages/tools/ai/sensor-toolkit-88036?aid=1101l866w) asset. It's cheap and excellent, we don't believe in reinventing the wheel, though we will accept PRs that remove this dependency. If you don't already have it please use the link above as it is our affiliate link, buy yourself an asset, buy us coffee. It also uses Cinemachine, but this is a free package from Unity so no worries there.
+
 ## Features
 
   * Camera navigates in 3D space between waypoints
@@ -17,6 +19,12 @@ Note, although the implementation can be made to work in internal spaces it has 
 ## Installation of Latest Release
 
 This is the easiest way of installing the code. Start with a standard Unity project and then follow the steps below. Note, using this method you cannot edit the sourcecode as packages are imported in read only mode. If you want to work with the code use the method described in the next section.
+
+### Install Sensor Toolkit
+
+  1. Purchase and Install [Sensor Toolkit](https://assetstore.unity.com/packages/tools/ai/sensor-toolkit-88036?aid=1101l866w) (affiliate link)
+  2. Note this code requires that the `SteeringRig.FixedUpdate` method in SensorToolkit is marked `protected virtual` which it is not out of the box. We've made a request to do this at https://forum.unity.com/threads/released-sensor-toolkit.468255/#post-7832232 but at the time of writing you will need to make this edit yourself.
+  3. Add an Assembly Definition file called `Assets/SensorToolkit/micosmo.sensortoolkit` - the default file created will be enough, but note that more nuance will be needed if you plan to make a build. PRs welcome.
 
 ### Install Automated Explorer
 
@@ -43,6 +51,7 @@ This setup will work out of the box, but there are a great many options that all
 We are a big fan of enabling our users to improve the Automated Explorer Cam, so we would encourage you to use the source code, it's not much harder than using the latest release.
 
   1. Create a Unity project within which to do your camera dev work
+  2. Install Sensor toolike as described above
   3. Add `Cinemachine` using the package manager
   4. Fork the project on GitHub by clicking the icon in the top right
   5. Clone the repo into your Unity projects Asset folder `git clone [YOUR_FORK_URL]`

@@ -18,8 +18,10 @@ This component manages the behaviour of the follow target. All parameters should
 
 The sensors section describes how the body senses waypoints that will define its flightpath:
 
+  * Waypoint Sensor - the [Sensor Tookit](https://bit.ly/SensorTookit) provided Waypoint Sensor, see below.
+  * Waypont Arrival Sensor - the [Sensor Tookit](https://bit.ly/SensorTookit) provided Waypoint Arrival Sensor, see below.
   * Waypoint Prefab - the waypoint prefab that sensors will be trying to detect
-  * Strategy - defines how the next candidate waypoints are selected. Note that waypoints can have a `Next Waypoint` defined. If it is defined it will take precedent over the list created by this strategy. Note also that the weight of candidate waypoints is used to make the final selection (see below), but the initial shortlist is created using this strategy. Strategies include `Furthest` (select the furthest detected waypoint), "Nearest" (select the nearest detected waypoint), "Random" select a random waypoint from the list detected.
+  * Strategy - defines how the next candidate waypoints are selected. Note that waypoints can have a `Next Waypoint` defined. If it is defined it will take precedent over the list created by this strategy. Note also that the weight of candidate waypoints is used to make the final selection (see below), but the initial shortlist is created using this strategy. Strategies include `Furhest` (select the furthest detected waypoint), "Nearest" (select the nearest detected waypoint), "Random" select a random waypoint from the list detected.
   * Randomness - this prevents the same path being taken every time. The lower this value the more mathematicaly certain the selection criteria is. A value of 0 will result in the same path each time, that is no randomness.
   
 
@@ -35,6 +37,10 @@ The sensors section describes how the body senses waypoints that will define its
   * Randomize Starting Position - if true the body will select a random waypoint as its starting position. However, these waypoints must be present in the scene on start, spawned waypoints will not be considered. If no waypoint is found then no change will be made to the start position.
 
 ## Steering Rig (Child)
+
+The `Camera Steering Rig` is an extension of their `Steering Rig` provided by [Sensor Toolkit](https://bit.ly/SensorTookit) which is required for this code to work.
+
+The critical parameters for this use case are described below, consult the Sensor Toolkit documentation for information on other parameters:
 
   * Turn Force - (think "turning speed") the maximum torgque that can be applied to the rigid body, for most use cases a value between 0 and 1 seems to work well but you may get different results.
   * Move Force - (think "forward speed") The maximum forward force that can be applied to the rigid body. What this should be set to depends alot on the rigid bodies mass and drag.
@@ -62,11 +68,17 @@ If any of these paramaters are set to try you will be able to set the follwoing 
 
 ### Height Management
 
-If the `Maintain Height` property is set to true this section controls how height is managed for this body. 
+If the `Maintain Height` property is set to true this section controls how height is managed for this body. Note that Height is also managed by the Sensor Toolkit sensor array. The difference is that this section manages a preferred height while the sensor array ensures the body does not hit an obstacle.
 
   * Min Height - the minimum height that the body can normally fly at. If the sensor array has a sensor that defines a greater minimum height it will take precedence over this setting.
   * Max Height - The maximum height this body is normally allowed to fly at.
   * Optimal Height - the height that this body will prefer to fly at if possible. The body will tend towards this height unless there is an obstacle or waypoint that required it move to a different height.
+
+## WaypointSensor (Child)
+
+The `Waypoint Sensor` is provided by [Sensor Toolkit](https://bit.ly/SensorTookit) which is required for this code to work. See the Sensor Toolkit for complete documentation here are some of the essential parameters for this use case:
+
+  * `Sensor Range` the radius, in world units, within which waypoints will be detected.
 
 # Follow CmM VCam1
 

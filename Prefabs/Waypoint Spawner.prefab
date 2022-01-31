@@ -43,14 +43,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1db34d609036b994ca87258eca785453, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ToSpawn: {fileID: 146072, guid: ad452806b554e9b4e942ccc6439b68d5, type: 3}
-  Number: 5
-  SpawnInterval: 5
+  ToSpawn: {fileID: 6907383477543755845, guid: ad452806b554e9b4e942ccc6439b68d5, type: 3}
   StartSpawnAmount: 2
+  TotalNumber: 5
+  SpawnInterval: 5
   SizeX: 100
-  SizeY: 10
   SizeZ: 100
-  ClearRadius: 1.8
+  minHeight: 7
+  maxHeight: 7
+  AdjustToTerrainHeight: 1
+  SpawnAboveWater: 1
   ObstructingLayers:
     serializedVersion: 2
     m_Bits: 1
+  m_ShowAvailable: 0
+  m_ShowUnavailable: 0
