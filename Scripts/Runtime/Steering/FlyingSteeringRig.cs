@@ -124,7 +124,7 @@ namespace WizardsCode.AI
                 originalAnimationSpeed = m_Animator.speed;
             }
         }
-        private bool hasReachedDestination
+        internal bool hasReachedDestination
         {
             get
             {

@@ -3,8 +3,7 @@
     "rootNamespace": "",
     "references": [
         "wizardscode.ai.explorer",
-        "Cinemachine",
-        "micosmo.sensortoolkit"
+        "Cinemachine"
     ],
     "includePlatforms": [
         "Editor"
