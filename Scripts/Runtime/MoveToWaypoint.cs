@@ -103,6 +103,8 @@ namespace WizardsCode.AI
         {
             get
             {
+                if (m_SteeringRig.isLanding) return false;
+
                 if (Vector3.SqrMagnitude(oldPosition - transform.position) < sqrStuckTolerance)
                 {
                     timeToStuck -= Time.deltaTime;

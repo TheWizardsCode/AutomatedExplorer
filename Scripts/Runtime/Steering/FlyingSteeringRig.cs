@@ -177,8 +177,11 @@ namespace WizardsCode.AI
             for (int i = 0; i < sensorArray.Length; i++)
             {
                 if (destination.position.y < rigidbody.position.y && sensorArray[i].sensorDirection.y < 0)
+                if ((destination.position - rigidbody.position).sqrMagnitude <= 3 
+                    && destination.position.y < rigidbody.position.y 
+                    && sensorArray[i].sensorDirection.y < 0)
                 {
-                    // skip downwards sensors if we are trying to get low, this allows for landing and similar mechnics
+                    // skip downwards sensors are ignored if we are trying to get low, this allows for landing and similar mechanics
                     continue;
                 }
 
@@ -242,7 +245,8 @@ namespace WizardsCode.AI
 
         private void FlightPhysics()
         {
-            Vector3 desiredDirection = (destination.position - rigidbody.transform.position);
+            Vector3 desiredDirection = (destination.position - rigidbody.position);
+
             Vector3 moveDirection = Vector3.zero;
             if (desiredDirection.sqrMagnitude > 1)
             {
@@ -288,12 +292,7 @@ namespace WizardsCode.AI
             float forwardForce = Mathf.Lerp(m_MaxStrafeForce, m_MaxForwardForce, Mathf.Clamp01(forwardDotMove));
 
             // Vertical force to add
-            float verticalDotMove = Vector3.Dot(Vector3.up, moveDirection.normalized);
-            float verticalForce = 0;
-            if (verticalDotMove > 0)
-            {
-                verticalForce = Mathf.Lerp(0, m_MaxVerticalForce, Mathf.Clamp01(verticalDotMove));
-            }
+            float verticalForce = Mathf.Lerp(0, m_MaxVerticalForce, Mathf.Clamp01(moveDirection.normalized.y));
 
             // Add the forces
             rigidbody.AddForce((forwardForce * moveDirection.normalized)
