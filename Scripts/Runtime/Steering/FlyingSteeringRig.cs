@@ -36,9 +36,11 @@ namespace WizardsCode.AI
             " If this is true the following settings will confine the height.")]
         bool m_MaintainHeight = true;
         [SerializeField, Tooltip("The minimum height above the ground or nearest obstacle that this rig" +
-            " should be. This is used as a validation check to ensure the object is not going below" +
-            " the terrain or through a mesh obstacles in the scene.")]
+            " should be. The body will always try to get higher if it drops below this height.")]
         float m_MinHeight = 1.5f;
+        [SerializeField, Tooltip("The height above the ground or nearest obstacle that will cause this rig" +
+            " automatically land.")]
+        float m_LandingHeight = 0.5f;
         [SerializeField, Tooltip("The maximum height above the ground or nearest obstacle that this rig" +
             " should be. This is used as a validation check to ensure the object is not going too" +
             " far above the terrain or mesh obstacles in the scene. The camera may go above this height" +
@@ -69,6 +71,38 @@ namespace WizardsCode.AI
         /// </summary>
         public Transform destination { get; set; }
 
+        /// <summary>
+        /// Returns true if the body is currently on the ground.
+        /// </summary>
+        public bool isGrounded
+        {
+            get
+            {
+                return height <= 0.01f;
+            }
+        }
+
+        /// <summary>
+        /// Returns the current height of the body above the nearest obstacle below it.
+        /// </summary>
+        public float height
+        {
+            get
+            {
+                //OPTIMIZE: cache the result of this for a few frames at a time since it is potentially called multiple times a frame
+
+                RaycastHit hit;
+                if (Physics.Raycast(rigidbody.position, Vector3.down, out hit, Mathf.Infinity))
+                {
+                    return hit.distance;
+                }
+                else
+                {
+                    Debug.LogError("The raycast to get body height didn't hit anything. Returning a height of infinity, but this likely shouldn't happen.");
+                    return Mathf.Infinity;
+                }
+            }
+        }
         private void Awake()
         {
             ConfigureSensors();
@@ -148,21 +182,35 @@ namespace WizardsCode.AI
                 return;
             }
 
+            if (isGrounded)
+            {
+                GroundMovement();
+            }
+            else
+            {
+                FlightPhysics();
+            }
+        }
+
+        private void FlightPhysics()
+        {
             Vector3 desiredDirection = (destination.position - rigidbody.transform.position);
-            Vector3 moveDirection = Vector3.zero; 
+            Vector3 moveDirection = Vector3.zero;
             if (desiredDirection.sqrMagnitude > 1)
             {
                 moveDirection += desiredDirection.normalized;
-            } else
+            }
+            else
             {
                 moveDirection += desiredDirection;
             }
-            
+
             Vector3 repulsion = GetRepulsionDirection();
             if (repulsion.sqrMagnitude > 0.01f)
             {
                 moveDirection += repulsion.normalized;
-            } else
+            }
+            else
             {
                 moveDirection += repulsion * 100;
             }
@@ -182,7 +230,7 @@ namespace WizardsCode.AI
             float force = Mathf.Clamp(z / 45f, -1f, 1f) * m_MaxTorque;
             rigidbody.AddTorque(rigidbody.transform.forward * -force);
 
-            SetAnimationParameters(moveDirection);
+            SetAnimationParameters();
 
             // Forward force to add
             float forwardDotMove = Vector3.Dot(rigidbody.transform.forward, moveDirection.normalized);
@@ -191,26 +239,48 @@ namespace WizardsCode.AI
             // Vertical force to add
             float verticalDotMove = Vector3.Dot(Vector3.up, moveDirection.normalized);
             float verticalForce = 0;
-            if (verticalDotMove > 0) {
+            if (verticalDotMove > 0)
+            {
                 verticalForce = Mathf.Lerp(0, m_MaxVerticalForce, Mathf.Clamp01(verticalDotMove));
             }
 
             // Add the forces
-            rigidbody.AddForce((forwardForce * moveDirection.normalized) 
+            rigidbody.AddForce((forwardForce * moveDirection.normalized)
                 + (verticalForce * rigidbody.transform.up));
 
             // Don't go over maximum speed
             rigidbody.velocity = Vector3.ClampMagnitude(rigidbody.velocity, maxSpeed);
         }
 
-        void SetAnimationParameters(Vector3 moveDirection)
+        /// <summary>
+        /// Cacluate movement of the body when on the ground.
+        /// </summary>
+        private void GroundMovement()
+        {
+            Vector3 moveDirection = Vector3.zero;
+
+            // take off
+            moveDirection = new Vector3(0, 1, 1);
+
+            // Add the forces
+            //rigidbody.transform.Translate(Vector3.Lerp(rigidbody.transform.position, rigidbody.transform.TransformDirection(moveDirection), Time.deltaTime));
+        }
+        void SetAnimationParameters()
         {
             if (!m_Animator) return;
+            if (isGrounded)
+            {
+                m_Animator.SetBool("isGrounded", true);
+            }
+            else
+            {
+                m_Animator.SetBool("isGrounded", false);
+            }
 
             Quaternion q = rigidbody.rotation;
             float rollRad = Mathf.Atan2(2 * q.y * q.w - 2 * q.x * q.z, 1 - 2 * q.y * q.y - 2 * q.z * q.z);
             float pitchRad = Mathf.Atan2(2 * q.x * q.w - 2 * q.y * q.z, 1 - 2 * q.x * q.x - 2 * q.z * q.z);
-            float yawRad = Mathf.Asin(2 * q.x * q.y + 2 * q.z * q.w);
+            //float yawRad = Mathf.Asin(2 * q.x * q.y + 2 * q.z * q.w);
 
             float pitch;
             if (pitchRad <= 0) // up
@@ -220,7 +290,7 @@ namespace WizardsCode.AI
             {
                 pitch = (Mathf.Rad2Deg * -pitchRad) / m_MaxDiveAngle;
             }
-            float yaw = yawRad / 1.52f;
+            //float yaw = yawRad / 1.52f;
             float roll = rollRad / 3.14f;
             float strafeVelocity = transform.InverseTransformDirection(rigidbody.velocity).normalized.x;
             float verticalVelocity = rigidbody.velocity.normalized.y;
