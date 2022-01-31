@@ -41,6 +41,9 @@ namespace WizardsCode.AI
         [SerializeField, Tooltip("The height above the ground or nearest obstacle that will cause this rig" +
             " automatically land.")]
         float m_LandingHeight = 0.5f;
+        [SerializeField, Tooltip("The height at which the body is considered to be grounded. Theoretically this should be zero," +
+            " however it will often be higher due to the models structure.")]
+        float m_GroundedHeight = 0.08f;
         [SerializeField, Tooltip("The maximum height above the ground or nearest obstacle that this rig" +
             " should be. This is used as a validation check to ensure the object is not going too" +
             " far above the terrain or mesh obstacles in the scene. The camera may go above this height" +
@@ -78,7 +81,34 @@ namespace WizardsCode.AI
         {
             get
             {
-                return height <= 0.01f;
+                bool grounded = m_Animator.GetBool("isGrounded");
+                bool landing = m_Animator.GetBool("isLanding");
+                // Optimization: Use Hash not string
+                if (!grounded && landing && height <= m_GroundedHeight) // landed
+                {
+                    m_Animator.SetBool("isLanding", false);
+                    m_Animator.SetBool("isGrounded", true);
+                    return true;
+                }
+                else if (grounded && height >= m_LandingHeight) // taken off
+                {
+                    m_Animator.SetBool("isGrounded", false);
+                    return false;
+                }
+
+                return grounded;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the body is in the process of landing.
+        /// </summary>
+        public bool isLanding
+        {
+            get
+            {
+                // Optimization: Use hash not string
+                return m_Animator.GetBool("isLanding") || rigidbody.position.y <= m_LandingHeight;
             }
         }
 
@@ -146,6 +176,12 @@ namespace WizardsCode.AI
             Vector3 strength = Vector3.zero;
             for (int i = 0; i < sensorArray.Length; i++)
             {
+                if (destination.position.y < rigidbody.position.y && sensorArray[i].sensorDirection.y < 0)
+                {
+                    // skip downwards sensors if we are trying to get low, this allows for landing and similar mechnics
+                    continue;
+                }
+
                 strength += sensorArray[i].lastObstructionRatio;
             }
 
@@ -157,6 +193,9 @@ namespace WizardsCode.AI
             {
                 originalAnimationSpeed = m_Animator.speed;
             }
+
+            m_Animator.SetBool("isGrounded", height <= m_GroundedHeight);
+            m_Animator.SetBool("isLanding", false);
         }
 
         /// <summary>
@@ -186,10 +225,19 @@ namespace WizardsCode.AI
             {
                 GroundMovement();
             }
-            else
+            else if (isLanding)
+            {
+                LandingPhysics();
+            } else 
             {
                 FlightPhysics();
             }
+
+            SetAnimationParameters();
+        }
+
+        private void LandingPhysics()
+        {
         }
 
         private void FlightPhysics()
@@ -230,8 +278,11 @@ namespace WizardsCode.AI
             float force = Mathf.Clamp(z / 45f, -1f, 1f) * m_MaxTorque;
             rigidbody.AddTorque(rigidbody.transform.forward * -force);
 
-            SetAnimationParameters();
+            ApplyForces(moveDirection);
+        }
 
+        private void ApplyForces(Vector3 moveDirection)
+        {
             // Forward force to add
             float forwardDotMove = Vector3.Dot(rigidbody.transform.forward, moveDirection.normalized);
             float forwardForce = Mathf.Lerp(m_MaxStrafeForce, m_MaxForwardForce, Mathf.Clamp01(forwardDotMove));
@@ -258,24 +309,17 @@ namespace WizardsCode.AI
         private void GroundMovement()
         {
             Vector3 moveDirection = Vector3.zero;
+            if (destination.position.y > m_LandingHeight)
+            {
+                // take off
+                moveDirection = new Vector3(0, 1000, 1000);
+            }
 
-            // take off
-            moveDirection = new Vector3(0, 1, 1);
-
-            // Add the forces
-            //rigidbody.transform.Translate(Vector3.Lerp(rigidbody.transform.position, rigidbody.transform.TransformDirection(moveDirection), Time.deltaTime));
+            ApplyForces(moveDirection);
         }
         void SetAnimationParameters()
         {
             if (!m_Animator) return;
-            if (isGrounded)
-            {
-                m_Animator.SetBool("isGrounded", true);
-            }
-            else
-            {
-                m_Animator.SetBool("isGrounded", false);
-            }
 
             Quaternion q = rigidbody.rotation;
             float rollRad = Mathf.Atan2(2 * q.y * q.w - 2 * q.x * q.z, 1 - 2 * q.y * q.y - 2 * q.z * q.z);
