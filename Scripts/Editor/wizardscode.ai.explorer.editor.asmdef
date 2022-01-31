@@ -3,8 +3,12 @@
     "rootNamespace": "",
     "references": [
         "wizardscode.ai.explorer",
+<<<<<<< Updated upstream
         "Cinemachine",
-        "micosmo.sensortoolkit"
+        "microsmo.sensortoolkit"
+=======
+        "Cinemachine"
+>>>>>>> Stashed changes
     ],
     "includePlatforms": [
         "Editor"

@@ -2,8 +2,12 @@
     "name": "wizardscode.ai.explorer",
     "rootNamespace": "",
     "references": [
+<<<<<<< Updated upstream
         "PhotoSession.Runtime",
-        "micosmo.sensortoolkit"
+        "microsmo.sensortoolkit"
+=======
+        "PhotoSession.Runtime"
+>>>>>>> Stashed changes
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

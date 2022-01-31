@@ -29,6 +29,8 @@ AnimatorOverrideController:
     m_OverrideClip: {fileID: 7400008, guid: 47c70e2dd99a9f14f90c8e037c1c792b, type: 3}
   - m_OriginalClip: {fileID: 7400000, guid: 2c46f8b459a2e39489ad33e0c25e45e4, type: 2}
     m_OverrideClip: {fileID: 7400010, guid: 47c70e2dd99a9f14f90c8e037c1c792b, type: 3}
+  - m_OriginalClip: {fileID: 7400012, guid: 47c70e2dd99a9f14f90c8e037c1c792b, type: 3}
+    m_OverrideClip: {fileID: 7400012, guid: 47c70e2dd99a9f14f90c8e037c1c792b, type: 3}
   - m_OriginalClip: {fileID: 7400000, guid: 716784733869f5f44855acc139951a66, type: 2}
     m_OverrideClip: {fileID: 7400012, guid: 47c70e2dd99a9f14f90c8e037c1c792b, type: 3}
   - m_OriginalClip: {fileID: 7400000, guid: 0b47b571577c971449a4f1f5d234b2fb, type: 2}
@@ -41,9 +43,18 @@ AnimatorOverrideController:
     m_OverrideClip: {fileID: 7400048, guid: 47c70e2dd99a9f14f90c8e037c1c792b, type: 3}
   - m_OriginalClip: {fileID: 7400000, guid: f5f6ad99c462a594b9a74b5934303e29, type: 2}
     m_OverrideClip: {fileID: 7400050, guid: 47c70e2dd99a9f14f90c8e037c1c792b, type: 3}
-  - m_OriginalClip: {fileID: 7400000, guid: c9b532f2b2c55b0409a5822a7aeffeb6, type: 2}
-    m_OverrideClip: {fileID: 7400008, guid: 47c70e2dd99a9f14f90c8e037c1c792b, type: 3}
-  - m_OriginalClip: {fileID: 7400000, guid: 6ea14cca7893ae448b5f6ecdcea029ee, type: 2}
-    m_OverrideClip: {fileID: 7400010, guid: 47c70e2dd99a9f14f90c8e037c1c792b, type: 3}
-  - m_OriginalClip: {fileID: 7400000, guid: 705b9cfb18289ba4ca5016d9ac206754, type: 2}
-    m_OverrideClip: {fileID: 7400006, guid: 47c70e2dd99a9f14f90c8e037c1c792b, type: 3}
+<<<<<<< Updated upstream
+=======
+  - m_OriginalClip: {fileID: 7400000, guid: 4831672f16dfe744d9678abaa1fb34d5, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 7e5a66b8143a22d439d97b8663da48a6, type: 3}
+  - m_OriginalClip: {fileID: 7400000, guid: 51cb2bd50c3f1374bbe8b099d7fb522c, type: 2}
+    m_OverrideClip: {fileID: 7400002, guid: 7e5a66b8143a22d439d97b8663da48a6, type: 3}
+  - m_OriginalClip: {fileID: 7400000, guid: 0a91187913900d84ba38e9153afaebd7, type: 2}
+    m_OverrideClip: {fileID: 7400004, guid: 7e5a66b8143a22d439d97b8663da48a6, type: 3}
+  - m_OriginalClip: {fileID: 7400000, guid: 70997ae4164ecb646949949ea2ece781, type: 2}
+    m_OverrideClip: {fileID: 7400004, guid: 7f0921a659d05b9439ac0555cdcc7cca, type: 3}
+  - m_OriginalClip: {fileID: 7400000, guid: bc1a19ae29c61de40a0fae09acdb0251, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 7f0921a659d05b9439ac0555cdcc7cca, type: 3}
+  - m_OriginalClip: {fileID: 7400000, guid: d2e2cdc6cc0c04b40827eb81f9d8409a, type: 2}
+    m_OverrideClip: {fileID: 7400008, guid: 7f0921a659d05b9439ac0555cdcc7cca, type: 3}
+>>>>>>> Stashed changes
