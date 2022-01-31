@@ -124,10 +124,17 @@ namespace WizardsCode.AI
                 originalAnimationSpeed = m_Animator.speed;
             }
         }
+
+        /// <summary>
+        /// Test to see if the body has reached its destination. If no destination is currently set this will
+        /// always return true.
+        /// </summary>
         internal bool hasReachedDestination
         {
             get
             {
+                if (destination == null) return true;
+
                 return (rigidbody.transform.position - destination.position).magnitude <= m_ArrivalDistance;
             }
         }
