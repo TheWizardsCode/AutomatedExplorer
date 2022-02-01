@@ -74,29 +74,42 @@ namespace WizardsCode.AI
         /// </summary>
         public Transform destination { get; set; }
 
+
+
         /// <summary>
-        /// Returns true if the body is currently on the ground.
+        /// Returns true if the body is in an idle state.
         /// </summary>
+        public bool isIdle
+        {
+            get
+            {
+                // Optimization: Use hash not string
+                return m_Animator.GetCurrentAnimatorStateInfo(0).IsName("Idle");
+            }
+        }
+        
+        
+        /// <summary>
+         /// Returns true if the body is currently on the ground.
+         /// </summary>
         public bool isGrounded
         {
             get
             {
-                bool grounded = m_Animator.GetBool("isGrounded");
-                bool landing = m_Animator.GetBool("isLanding");
-                // Optimization: Use Hash not string
-                if (!grounded && landing && height <= m_GroundedHeight) // landed
-                {
-                    m_Animator.SetBool("isLanding", false);
-                    m_Animator.SetBool("isGrounded", true);
-                    return true;
-                }
-                else if (grounded && height >= m_LandingHeight) // taken off
-                {
-                    m_Animator.SetBool("isGrounded", false);
-                    return false;
-                }
+                // Optimization: Use hash not string
+                return m_Animator.GetBool("isGrounded");
+            }
+        }
 
-                return grounded;
+        /// <summary>
+        /// Returns true if the body is in the process of taking off.
+        /// </summary>
+        public bool isTakingOff
+        {
+            get
+            {
+                // Optimization: Use hash not string
+                return m_Animator.GetCurrentAnimatorStateInfo(0).IsName("Take Off");
             }
         }
 
@@ -108,7 +121,17 @@ namespace WizardsCode.AI
             get
             {
                 // Optimization: Use hash not string
-                return m_Animator.GetBool("isLanding") || rigidbody.position.y <= m_LandingHeight;
+                return m_Animator.GetBool("isLanding");
+            }
+        }
+
+        public bool isFlying
+        {
+            get 
+            {
+                // Optimization: Use hash not string
+                return m_Animator.GetCurrentAnimatorStateInfo(0).IsName("Flight") 
+                    || m_Animator.GetCurrentAnimatorStateInfo(0).IsName("Glide");
             }
         }
 
@@ -176,7 +199,6 @@ namespace WizardsCode.AI
             Vector3 strength = Vector3.zero;
             for (int i = 0; i < sensorArray.Length; i++)
             {
-                if (destination.position.y < rigidbody.position.y && sensorArray[i].sensorDirection.y < 0)
                 if ((destination.position - rigidbody.position).sqrMagnitude <= 3 
                     && destination.position.y < rigidbody.position.y 
                     && sensorArray[i].sensorDirection.y < 0)
@@ -226,7 +248,14 @@ namespace WizardsCode.AI
 
             if (isGrounded)
             {
-                GroundMovement();
+                if (destination.position.y >= m_MinHeight)
+                {
+                    TakeOff();
+                }
+                else
+                {
+                    GroundMovement();
+                }
             }
             else if (isLanding)
             {
@@ -303,18 +332,23 @@ namespace WizardsCode.AI
         }
 
         /// <summary>
-        /// Cacluate movement of the body when on the ground.
+        /// Apply rules to cause the body to take off from a grounded position
+        /// </summary>
+        private void TakeOff()
+        {
+            Vector3 moveDirection = Vector3.zero;
+            moveDirection = new Vector3(0, 1000, 1000);
+            // OPTIMIZATION: use hash
+            m_Animator.SetBool("isGrounded", false);
+
+            ApplyForces(moveDirection);
+        }
+
+        /// <summary>
+        /// Apply on the ground movement rules.
         /// </summary>
         private void GroundMovement()
         {
-            Vector3 moveDirection = Vector3.zero;
-            if (destination.position.y > m_LandingHeight)
-            {
-                // take off
-                moveDirection = new Vector3(0, 1000, 1000);
-            }
-
-            ApplyForces(moveDirection);
         }
         void SetAnimationParameters()
         {

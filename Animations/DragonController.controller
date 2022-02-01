@@ -245,9 +245,6 @@ AnimatorTransition:
   - m_ConditionMode: 3
     m_ConditionEvent: verticalVelocity
     m_EventTreshold: 0.05
-  - m_ConditionMode: 2
-    m_ConditionEvent: isGrounded
-    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 1368909181614760674}
   m_Solo: 0
