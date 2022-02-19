@@ -113,6 +113,7 @@ namespace WizardsCode.Spawning
             
             //OPTIMIZATION: Use a pool
             WayPoint go = Instantiate(ToSpawn) as WayPoint;
+            go.name += instanceCount++;
 
             int nTrys = 0;
             Vector3 pos;
@@ -128,7 +129,6 @@ namespace WizardsCode.Spawning
             } while (LocationIsObstructed(pos, go));
 
             go.transform.SetPositionAndRotation(pos, transform.rotation);
-            go.name += instanceCount++;
             go.transform.SetParent(transform.parent);
             spawned[nextSlot] = go.gameObject;
         }
@@ -143,7 +143,7 @@ namespace WizardsCode.Spawning
             Vector3 dimensions = new Vector3(SizeX / 2f, maxHeight - minHeight, SizeZ / 2f);
             Vector3 randNormalizedVector = new Vector3(Random.Range(-1f, 1f), Random.Range(0, 1f), Random.Range(-1f, 1f));
             Vector3 pos = Vector3.Scale(dimensions, randNormalizedVector) + transform.position;
-            pos.y += minHeight - transform.position.y;
+            pos.y += minHeight;
 
             pos = GetHeightAdjusted(pos, go);
 
@@ -170,7 +170,6 @@ namespace WizardsCode.Spawning
                 clearance = (go.ClearRadius * 1.05f);
             }
 
-            //TODO: consider using just raycast, do we really need to measure terrain heigh. Consider that this will not take into account items onthe terrain,
             RaycastHit hit;
             float height = 0;
             bool hasHit = Physics.Raycast(pos, Vector3.down, out hit, Mathf.Infinity);
@@ -180,17 +179,13 @@ namespace WizardsCode.Spawning
 
                 if (AdjustHeight)
                 {
-                    if (pos.y < height + clearance)
+                    if (height + clearance < minHeight)
                     {
-                        pos.y = height + clearance;
+                        pos.y = hit.point.y + minHeight + clearance;
                     }
-                    else if (pos.y - height > maxHeight)
+                    else if (height + clearance > maxHeight)
                     {
-                        pos.y = height + Random.Range(height + clearance, height + maxHeight);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"{name} has `AdjustHeight` enabled but there is no raycast hit below {pos}. Relying on the initial spawn positions height.");
+                        pos.y = hit.point.y + maxHeight - clearance;
                     }
                 }
 
@@ -207,6 +202,10 @@ namespace WizardsCode.Spawning
                         pos.y = waterHeight + Random.Range(clearance, maxHeight);
                     }
                 }
+            }
+            else
+            {
+                Debug.LogError($"{name} has `AdjustHeight` enabled but there is no raycast hit below {pos}. Relying on the initial spawn positions height.");
             }
 
             return pos;

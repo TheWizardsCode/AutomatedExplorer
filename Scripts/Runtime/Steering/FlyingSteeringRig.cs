@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using static WizardsCode.AI.Sensor;
+using WizardsCode.Character;
 
 namespace WizardsCode.AI
 {
@@ -8,11 +10,11 @@ namespace WizardsCode.AI
     /// This rig provides a 3D navigation for flying creatures and objects. It detects opstacles on the expected path an flies over
     /// them or around them if it can. 
     /// </summary>
-    public class FlyingSteeringRig : MonoBehaviour
+    public class FlyingSteeringRig : BaseActorController
     {
         [Header("Flight Controls")]
         [SerializeField, Tooltip("The rigid body that forces will be applied to to make the object fly (or fall in the case of gravity).")]
-        internal Rigidbody rigidbody;
+        internal Rigidbody rb;
         [SerializeField, Tooltip("Once the object is within this distance of the destination it is considered to have reached the destination.")]
         float m_ArrivalDistance = 1;
         [SerializeField, Tooltip("The maximum toque (turning force) that can be applied to this body. Higher values will result in tighter turns.")]
@@ -32,12 +34,11 @@ namespace WizardsCode.AI
         LayerMask m_AvoidanceLayers;
 
         [Header("Height Management")]
-        [SerializeField, Tooltip("Try to keep the camera within a certain height range (true) or allow any height (false)." +
-            " If this is true the following settings will confine the height.")]
-        bool m_MaintainHeight = true;
         [SerializeField, Tooltip("The minimum height above the ground or nearest obstacle that this rig" +
             " should be. The body will always try to get higher if it drops below this height.")]
         float m_MinHeight = 1.5f;
+        [SerializeField, Tooltip("Automatically land when below the landing height?")]
+        bool m_AutoLand = false;
         [SerializeField, Tooltip("The height above the ground or nearest obstacle that will cause this rig" +
             " automatically land.")]
         float m_LandingHeight = 0.5f;
@@ -60,14 +61,12 @@ namespace WizardsCode.AI
         [Range(0, 90)]
         float m_MaxDiveAngle = 75;
 
-        [Header("Animation")]
-        [SerializeField, Tooltip("The animation controller for updating speed accordingly.")]
-        private Animator m_Animator;
-
         private float originalAnimationSpeed;
-        private static Mesh cylinderCache;
         private Sensor[] sensorArray;
         int nextSensorToPulse = 0;
+        private float approachDistanceSqr;
+        private float prepareToLandDistanceSqr;
+        private float landingDistanceSqr;
 
         /// <summary>
         /// The transform of the current destination the object is flying to.
@@ -83,8 +82,14 @@ namespace WizardsCode.AI
         {
             get
             {
-                // Optimization: Use hash not string
-                return m_Animator.GetCurrentAnimatorStateInfo(0).IsName("Idle");
+                if (m_Animator)
+                {
+                    return m_Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == AnimationHash.idleState;
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
         
@@ -96,8 +101,20 @@ namespace WizardsCode.AI
         {
             get
             {
-                // Optimization: Use hash not string
-                return m_Animator.GetBool("isGrounded");
+                if (m_Animator)
+                {
+                    return m_Animator.GetBool(AnimationHash.isGrounded);
+                } else
+                {
+                    return false;
+                }
+            }
+            set
+            {
+                if (m_Animator && isGrounded != value)
+                {
+                    m_Animator.SetBool(AnimationHash.isGrounded, value);
+                }
             }
         }
 
@@ -108,8 +125,13 @@ namespace WizardsCode.AI
         {
             get
             {
-                // Optimization: Use hash not string
-                return m_Animator.GetCurrentAnimatorStateInfo(0).IsName("Take Off");
+                if (m_Animator)
+                {
+                    return m_Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == AnimationHash.takeOffState;
+                } else
+                {
+                    return false;
+                }
             }
         }
 
@@ -120,8 +142,20 @@ namespace WizardsCode.AI
         {
             get
             {
-                // Optimization: Use hash not string
-                return m_Animator.GetBool("isLanding");
+                if (m_Animator)
+                {
+                    return m_Animator.GetBool(AnimationHash.isLanding);
+                } else
+                {
+                    return false;
+                }
+            }
+            set
+            {
+                if (m_Animator)
+                {
+                    m_Animator.SetBool(AnimationHash.isLanding, value);
+                }
             }
         }
 
@@ -129,9 +163,8 @@ namespace WizardsCode.AI
         {
             get 
             {
-                // Optimization: Use hash not string
-                return m_Animator.GetCurrentAnimatorStateInfo(0).IsName("Flight") 
-                    || m_Animator.GetCurrentAnimatorStateInfo(0).IsName("Glide");
+                return m_Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == AnimationHash.flightState
+                    || m_Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == AnimationHash.glideState;
             }
         }
 
@@ -145,20 +178,45 @@ namespace WizardsCode.AI
                 //OPTIMIZE: cache the result of this for a few frames at a time since it is potentially called multiple times a frame
 
                 RaycastHit hit;
-                if (Physics.Raycast(rigidbody.position, Vector3.down, out hit, Mathf.Infinity))
+                if (Physics.Raycast(rb.position, Vector3.down, out hit, Mathf.Infinity))
                 {
                     return hit.distance;
                 }
                 else
                 {
-                    Debug.LogError("The raycast to get body height didn't hit anything. Returning a height of infinity, but this likely shouldn't happen.");
-                    return Mathf.Infinity;
+                    return 0;
                 }
             }
         }
         private void Awake()
         {
             ConfigureSensors();
+            
+            float landingDistance = m_ArrivalDistance * 5f;
+            landingDistanceSqr = landingDistance * landingDistance;
+            
+            float prepareToLandDistance = landingDistance + (landingDistance * 2f);
+            prepareToLandDistanceSqr = prepareToLandDistance * prepareToLandDistance;
+
+            float approachDistance = prepareToLandDistance + (landingDistance * 5f);
+            approachDistanceSqr = approachDistance * approachDistance;
+        }
+
+        protected override void Update()
+        {
+            // FIXME: this overrides BaseActorController, so that we can use it in Ink directions, we currently override Update meaning none of the features of the base controller are used. 
+        }
+
+        public override void MoveTo(Transform destination)
+        {
+            WayPoint wp = destination.GetComponent<WayPoint>();
+            if (wp)
+            {
+                this.destination = destination;
+            } else
+            {
+                base.MoveTo(destination);
+            }
         }
 
         private void ConfigureSensors()
@@ -192,6 +250,8 @@ namespace WizardsCode.AI
         /// </summary>
         Vector3 GetRepulsionDirection()
         {
+            if (isLanding) return Vector3.zero;
+
             sensorArray[nextSensorToPulse].Pulse(this);
             nextSensorToPulse++;
             if (nextSensorToPulse == sensorArray.Length) nextSensorToPulse = 0;
@@ -199,14 +259,13 @@ namespace WizardsCode.AI
             Vector3 strength = Vector3.zero;
             for (int i = 0; i < sensorArray.Length; i++)
             {
-                if ((destination.position - rigidbody.position).sqrMagnitude <= 3 
-                    && destination.position.y < rigidbody.position.y 
-                    && sensorArray[i].sensorDirection.y < 0)
+                if (destination.position.y < rb.position.y && sensorArray[i].sensorDirection.y < 0)
                 {
-                    // skip downwards sensors are ignored if we are trying to get low, this allows for landing and similar mechanics
+                    // skip downward sensors as they would result in a push back up as we are trying to go down.
+                    // note that forward and up sensors can still result in a small upward force depending on 
+                    // the rotation of the body. This serves to force a levelling out as obstructions get nearer.
                     continue;
                 }
-
                 strength += sensorArray[i].lastObstructionRatio;
             }
 
@@ -219,8 +278,8 @@ namespace WizardsCode.AI
                 originalAnimationSpeed = m_Animator.speed;
             }
 
-            m_Animator.SetBool("isGrounded", height <= m_GroundedHeight);
-            m_Animator.SetBool("isLanding", false);
+            isGrounded = height <= m_GroundedHeight;
+            isLanding = false;
         }
 
         /// <summary>
@@ -233,7 +292,7 @@ namespace WizardsCode.AI
             {
                 if (destination == null) return true;
 
-                return (rigidbody.transform.position - destination.position).magnitude <= m_ArrivalDistance;
+                return (rb.transform.position - destination.position).magnitude <= m_ArrivalDistance;
             }
         }
         protected virtual void FixedUpdate()
@@ -248,7 +307,7 @@ namespace WizardsCode.AI
 
             if (isGrounded)
             {
-                if (destination.position.y >= m_MinHeight)
+                if (destination.position.y >= height + m_MinHeight)
                 {
                     TakeOff();
                 }
@@ -270,12 +329,52 @@ namespace WizardsCode.AI
 
         private void LandingPhysics()
         {
+            rb.freezeRotation = true;
+
+            // gravity is in effect so just wait
+            if (height < m_GroundedHeight)
+            {
+                isLanding = false;
+                isGrounded = true;
+                return;
+            }
+
+            Vector3 desiredDirection;
+            Vector3 interimDestination = GetDestinationPointAdjustedForApproachHeight();
+
+            desiredDirection = (interimDestination - rb.position);
+            Vector3 moveDirection = Vector3.zero;
+            if (desiredDirection.sqrMagnitude > 1)
+            {
+                moveDirection += desiredDirection.normalized;
+            }
+            else
+            {
+                moveDirection += desiredDirection;
+            }
+
+            //OPTIMIZATION: is it cheaper to create a single force and add it?
+            float z = rb.rotation.eulerAngles.z;
+            if (z > 180f) z -= 360f;
+            float force = Mathf.Clamp(z / 45f, -1f, 1f) * m_MaxTorque;
+            rb.AddTorque(rb.transform.forward * -force);
+
+            float x = rb.rotation.eulerAngles.x;
+            if (x > 180f) z -= 360f;
+            force = Mathf.Clamp(z / 45f, -1f, 1f) * m_MaxTorque;
+            rb.AddTorque(rb.transform.right * -force);
+
+            ApplyForces(moveDirection);
         }
 
         private void FlightPhysics()
         {
-            Vector3 desiredDirection = (destination.position - rigidbody.position);
+            rb.freezeRotation = false;
 
+            Vector3 desiredDirection;
+            Vector3 interimDestination = GetDestinationPointAdjustedForApproachHeight();
+
+            desiredDirection = (interimDestination - rb.position);
             Vector3 moveDirection = Vector3.zero;
             if (desiredDirection.sqrMagnitude > 1)
             {
@@ -299,36 +398,86 @@ namespace WizardsCode.AI
             // Rotate towards the desired direction
             float angle;
             Vector3 axis;
-            Quaternion desiredRotation = Quaternion.FromToRotation(rigidbody.transform.forward, moveDirection);
+            Quaternion desiredRotation = Quaternion.FromToRotation(rb.transform.forward, moveDirection);
             desiredRotation.ToAngleAxis(out angle, out axis);
             angle = angle > 180f ? angle - 360f : angle;
             var torque = Mathf.Clamp(angle / 20f, -1f, 1f) * m_MaxTorque;
-            rigidbody.AddTorque(axis * torque);
+            rb.AddTorque(axis * torque);
 
             // Keep the bottom facing down
-            float z = rigidbody.rotation.eulerAngles.z;
+            float z = rb.rotation.eulerAngles.z;
             if (z > 180f) z -= 360f;
             float force = Mathf.Clamp(z / 45f, -1f, 1f) * m_MaxTorque;
-            rigidbody.AddTorque(rigidbody.transform.forward * -force);
+            rb.AddTorque(rb.transform.forward * -force);
 
             ApplyForces(moveDirection);
+        }
+
+        /// <summary>
+        /// Create an interim point that is in the same x,z space as the destination but adjusted for height
+        /// to provide a good approach for landing or leisurely flight.
+        /// <returns></returns>
+        private Vector3 GetDestinationPointAdjustedForApproachHeight()
+        {
+            Vector3 interimDestination = destination.position;
+            Vector3 desiredDirection = (destination.position - rb.position);
+            if (desiredDirection.sqrMagnitude > approachDistanceSqr)
+            {
+                if (height > m_OptimalHeight)
+                {
+                    interimDestination.y = Mathf.Lerp(m_OptimalHeight + destination.position.y, height + destination.position.y, desiredDirection.sqrMagnitude / approachDistanceSqr);
+                }
+                else
+                {
+                    interimDestination.y = Mathf.Lerp(height + destination.position.y, m_OptimalHeight + destination.position.y, desiredDirection.sqrMagnitude / approachDistanceSqr);
+                }
+            }
+            else if (m_AutoLand && desiredDirection.sqrMagnitude > prepareToLandDistanceSqr)
+            {
+                if (height > m_MinHeight)
+                {
+                    interimDestination.y = Mathf.Lerp(m_MinHeight + destination.position.y, height + destination.position.y, desiredDirection.sqrMagnitude / prepareToLandDistanceSqr);
+                }
+                else
+                {
+                    interimDestination.y = Mathf.Lerp(destination.position.y + destination.position.y, m_MinHeight , desiredDirection.sqrMagnitude / prepareToLandDistanceSqr);
+                }
+            }
+            else if (m_AutoLand && desiredDirection.sqrMagnitude > landingDistanceSqr)
+            {
+                if (height > m_LandingHeight)
+                {
+                    interimDestination.y = Mathf.Lerp(height + destination.position.y, m_LandingHeight + destination.position.y, desiredDirection.sqrMagnitude / landingDistanceSqr);
+                }
+                else
+                {
+                    interimDestination.y = Mathf.Lerp(m_LandingHeight + destination.position.y, height + destination.position.y, desiredDirection.sqrMagnitude / landingDistanceSqr);
+                }
+            }
+            else if (m_AutoLand && destination.position.y < m_LandingHeight)
+            {
+                interimDestination.y = Mathf.Lerp(m_LandingHeight + destination.position.y, destination.position.y, Time.fixedDeltaTime);
+                isLanding = true;
+            }
+
+            return interimDestination;
         }
 
         private void ApplyForces(Vector3 moveDirection)
         {
             // Forward force to add
-            float forwardDotMove = Vector3.Dot(rigidbody.transform.forward, moveDirection.normalized);
+            float forwardDotMove = Vector3.Dot(rb.transform.forward, moveDirection.normalized);
             float forwardForce = Mathf.Lerp(m_MaxStrafeForce, m_MaxForwardForce, Mathf.Clamp01(forwardDotMove));
 
             // Vertical force to add
             float verticalForce = Mathf.Lerp(0, m_MaxVerticalForce, Mathf.Clamp01(moveDirection.normalized.y));
 
             // Add the forces
-            rigidbody.AddForce((forwardForce * moveDirection.normalized)
-                + (verticalForce * rigidbody.transform.up));
+            rb.AddForce((forwardForce * moveDirection.normalized)
+                + (verticalForce * rb.transform.up));
 
             // Don't go over maximum speed
-            rigidbody.velocity = Vector3.ClampMagnitude(rigidbody.velocity, maxSpeed);
+            rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxSpeed);
         }
 
         /// <summary>
@@ -336,10 +485,11 @@ namespace WizardsCode.AI
         /// </summary>
         private void TakeOff()
         {
+            rb.freezeRotation = false;
+
             Vector3 moveDirection = Vector3.zero;
             moveDirection = new Vector3(0, 1000, 1000);
-            // OPTIMIZATION: use hash
-            m_Animator.SetBool("isGrounded", false);
+            isGrounded = false;
 
             ApplyForces(moveDirection);
         }
@@ -349,12 +499,18 @@ namespace WizardsCode.AI
         /// </summary>
         private void GroundMovement()
         {
+            rb.freezeRotation = true;
+
+            if (Random.value < 0.01) {
+                // FIXME: Add ground movement
+                TakeOff();
+            }
         }
         void SetAnimationParameters()
         {
             if (!m_Animator) return;
 
-            Quaternion q = rigidbody.rotation;
+            Quaternion q = rb.rotation;
             float rollRad = Mathf.Atan2(2 * q.y * q.w - 2 * q.x * q.z, 1 - 2 * q.y * q.y - 2 * q.z * q.z);
             float pitchRad = Mathf.Atan2(2 * q.x * q.w - 2 * q.y * q.z, 1 - 2 * q.x * q.x - 2 * q.z * q.z);
             //float yawRad = Mathf.Asin(2 * q.x * q.y + 2 * q.z * q.w);
@@ -369,9 +525,9 @@ namespace WizardsCode.AI
             }
             //float yaw = yawRad / 1.52f;
             float roll = rollRad / 3.14f;
-            float strafeVelocity = transform.InverseTransformDirection(rigidbody.velocity).normalized.x;
-            float verticalVelocity = rigidbody.velocity.normalized.y;
-            float forwardVelocity = transform.InverseTransformDirection(rigidbody.velocity).normalized.z;
+            float strafeVelocity = transform.InverseTransformDirection(rb.velocity).normalized.x;
+            float verticalVelocity = rb.velocity.normalized.y;
+            float forwardVelocity = transform.InverseTransformDirection(rb.velocity).normalized.z;
 
             bool glide = false;
             if (forwardVelocity > 0.9)
@@ -379,63 +535,70 @@ namespace WizardsCode.AI
                 glide = pitch > -0.2 && pitch < 0.2;
             }
 
-            //OPTIMIZATION: Use Hash not string
-            m_Animator.SetFloat("yaw", strafeVelocity);
+            m_Animator.SetFloat(AnimationHash.yaw, strafeVelocity);
             if (pitch <= 0) // up
             {
-                m_Animator.SetFloat("pitch", pitch);
+                m_Animator.SetFloat(AnimationHash.pitch, pitch);
             } else // down
             {
-                m_Animator.SetFloat("pitch", pitch);
+                m_Animator.SetFloat(AnimationHash.pitch, pitch);
             }
-            m_Animator.SetFloat("roll", roll);
-            m_Animator.SetFloat("verticalVelocity", verticalVelocity);
-            m_Animator.SetFloat("forwardVelocity", forwardVelocity);
-            m_Animator.SetBool("glide", glide);
+            m_Animator.SetFloat(AnimationHash.roll, roll);
+            m_Animator.SetFloat(AnimationHash.verticalVelocity, verticalVelocity);
+            m_Animator.SetFloat(AnimationHash.forwardVelocity, forwardVelocity);
+            m_Animator.SetBool(AnimationHash.glide, glide);
         }
 
         private void OnDrawGizmosSelected()
         {
+            if (destination == null) return;
+
             // Target Direction
-            if (destination != null)
-            {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawLine(rigidbody.transform.position, destination.position);
-            }
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(rb.transform.position, destination.position);
 
             // Sensors
             if (sensorArray == null || sensorArray.Length == 0) ConfigureSensors();
 
-            for (int i = 0; i < sensorArray.Length; i++)
+            if (!isLanding)
             {
-                Vector3 direction = rigidbody.transform.TransformDirection(sensorArray[i].sensorDirection);
-                float length = Mathf.Lerp(0, sensorArray[i].maxLength, Mathf.Clamp01(rigidbody.velocity.magnitude / maxSpeed));
+                for (int i = 0; i < sensorArray.Length; i++)
+                {
+                    if (destination.position.y < rb.position.y && sensorArray[i].sensorDirection.y < 0) {
+                        continue;
+                    }
 
-                Vector3 endPoint;
-                if (sensorArray[i].hit.collider == null)
-                {
-                    endPoint = rigidbody.position + (direction * length);
-                    Gizmos.color = Color.green;
-                } else
-                {
-                    endPoint = rigidbody.position + (direction * sensorArray[i].hit.distance);
-                    Gizmos.color = Color.red;
-                }
+                    Vector3 direction = rb.transform.TransformDirection(sensorArray[i].sensorDirection);
+                    float length = Mathf.Lerp(0, sensorArray[i].maxLength, Mathf.Clamp01(rb.velocity.magnitude / maxSpeed));
 
-                if (sensorArray[i].radius > 0)
-                {
-                    Gizmos.DrawLine(rigidbody.position, endPoint);
-                    Gizmos.DrawWireSphere(endPoint, sensorArray[i].radius);
-                }
-                else
-                {
-                    Gizmos.DrawLine(rigidbody.position, endPoint);
+                    Vector3 endPoint;
+                    if (sensorArray[i].hit.collider == null)
+                    {
+                        endPoint = rb.position + (direction * length);
+                        Gizmos.color = Color.green;
+                    }
+                    else
+                    {
+                        endPoint = rb.position + (direction * sensorArray[i].hit.distance);
+                        Gizmos.color = Color.red;
+                    }
+
+                    if (sensorArray[i].radius > 0)
+                    {
+                        float currentRadius = Mathf.Lerp(0, sensorArray[i].radius, Mathf.Clamp01(rb.velocity.magnitude / maxSpeed));
+                        Gizmos.DrawLine(rb.position, endPoint);
+                        Gizmos.DrawWireSphere(endPoint, currentRadius);
+                    }
+                    else
+                    {
+                        Gizmos.DrawLine(rb.position, endPoint);
+                    }
                 }
             }
         }
         private void OnValidate()
         {
-            if (rigidbody == null) rigidbody = GetComponentInParent<Rigidbody>();
+            if (rb == null) rb = GetComponentInParent<Rigidbody>();
         }
     }
 
@@ -497,13 +660,14 @@ namespace WizardsCode.AI
         /// </summary>
         public bool Pulse(FlyingSteeringRig rig)
         {
-            Vector3 direction = rig.rigidbody.transform.TransformDirection(this.sensorDirection);
-            float length = Mathf.Lerp(0, maxLength, Mathf.Clamp01(rig.rigidbody.velocity.magnitude / rig.maxSpeed));
+            Vector3 direction = rig.rb.transform.TransformDirection(this.sensorDirection);
+            float length = Mathf.Lerp(0, maxLength, Mathf.Clamp01(rig.rb.velocity.magnitude / rig.maxSpeed));
 
-            Ray ray = new Ray(rig.rigidbody.transform.position, direction);
+            Ray ray = new Ray(rig.rb.transform.position, direction);
             if (radius > 0)
             {
-                obstructionHit = Physics.SphereCast(ray, radius, out hit, length, avoidanceLayers);
+                float currentRadius = Mathf.Lerp(0, radius, Mathf.Clamp01(rig.rb.velocity.magnitude / rig.maxSpeed));
+                obstructionHit = Physics.SphereCast(ray, currentRadius, out hit, length, avoidanceLayers);
             }
             else
             {
@@ -511,6 +675,30 @@ namespace WizardsCode.AI
             }
 
             return obstructionHit;
+        }
+
+        internal static class AnimationHash
+        {
+            #region parameters
+            internal static int isGrounded = Animator.StringToHash("isGrounded");
+            internal static int isLanding = Animator.StringToHash("isLanding");
+
+            internal static int roll = Animator.StringToHash("roll");
+            internal static int pitch = Animator.StringToHash("pitch");
+            internal static int yaw = Animator.StringToHash("yaw");
+
+            internal static int verticalVelocity = Animator.StringToHash("verticalVelocity");
+            internal static int forwardVelocity = Animator.StringToHash("forwardVelocity");
+
+            internal static int glide = Animator.StringToHash("glide");
+            #endregion
+
+            #region states
+            internal static int idleState = Animator.StringToHash("Idle");
+            internal static int takeOffState = Animator.StringToHash("Take Off");
+            internal static int flightState = Animator.StringToHash("Flight");
+            internal static int glideState = Animator.StringToHash("Glide");
+            #endregion
         }
     }
 }

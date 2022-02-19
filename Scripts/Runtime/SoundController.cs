@@ -17,6 +17,8 @@ namespace WizardsCode.Kalmeer.Wildlife
 
         public void PlaySound()
         {
+            if (m_WingFlapClip.Length == 0) return;
+
             audioSource.clip = m_WingFlapClip[Random.Range(0, m_WingFlapClip.Length)];
             audioSource.pitch = Random.Range(0.95f, 1.05f);
             audioSource.Play();

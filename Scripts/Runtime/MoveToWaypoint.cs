@@ -36,6 +36,14 @@ namespace WizardsCode.AI
             "Note if this is set to true but the Phot Session code is not present a warning will be displayed in the console.")]
         bool m_TakePhotoOnArrival = true;
 
+        [Header("Auto Enable/Disable")]
+        [SerializeField, Tooltip("If true this object will be enabled and disabled according to the paramters set below.")]
+        bool m_AutoDisable = true;
+        [SerializeField, Tooltip("If the object is at least this distance from the maincamera the object will be disabled.")]
+        int sqrDisableDistance = 1000;
+        [SerializeField, Tooltip("How frequently, in seconds, should this distance be checked?")]
+        float m_EnabledCheckInterval = 2.0f;
+
         [Header("Configuration")]
         [SerializeField, Tooltip("If true the body will select a random waypoint as its starting position. " +
             "However, these waypoints must be present in the scene on start, spawned waypoints will not be considered. " +
@@ -47,6 +55,7 @@ namespace WizardsCode.AI
         Vector3 oldPosition = Vector3.zero;
         float timeToStuck;
         float sqrStuckTolerance;
+        private Transform cameraTransform;
         List<WayPoint> m_DetectedWayPoints = new List<WayPoint>();
 
         private WayPoint nextWaypoint;
@@ -74,11 +83,43 @@ namespace WizardsCode.AI
             timeToStuck = m_StuckDuration;
             sqrStuckTolerance = m_StuckTolerance * m_StuckTolerance;
 
+            if (m_AutoDisable)
+            {
+                cameraTransform = Camera.main.transform;
+                if (cameraTransform == null) {
+                    Debug.LogError($"{name} is set to auto disable but no MainCamera is available in the scene.");
+                }
+
+                sqrDisableDistance = sqrDisableDistance * sqrDisableDistance;
+
+                InvokeRepeating("CheckEnableDisable", Random.value * m_EnabledCheckInterval, m_EnabledCheckInterval);
+                CheckEnableDisable();
+            }
+
 #if PHOTOSESSION_PRESENT
             photoSession = GameObject.FindObjectOfType<PhotoSession>();
 #endif
         }
 
+        private void OnEnable()
+        {
+            timeToStuck = m_StuckDuration;
+        }
+
+        void CheckEnableDisable()
+        {
+            if (gameObject.activeInHierarchy) {
+                if ((transform.position - cameraTransform.position).sqrMagnitude >= sqrDisableDistance)  
+                {
+                    gameObject.SetActive(false);
+                }
+            }
+            else if ((transform.position - cameraTransform.position).sqrMagnitude < sqrDisableDistance)
+            {
+                gameObject.SetActive(true);
+            }
+        }
+    
         WayPoint currentWaypoint
         {
             get

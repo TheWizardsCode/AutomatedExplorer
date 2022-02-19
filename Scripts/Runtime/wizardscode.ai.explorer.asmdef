@@ -2,7 +2,8 @@
     "name": "wizardscode.ai.explorer",
     "rootNamespace": "",
     "references": [
-        "PhotoSession.Runtime"
+        "PhotoSession.Runtime",
+        "WizardsCode.Character"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -15,7 +15,7 @@ namespace WizardsCode.AI
     {
         [SerializeField, Tooltip("The radiues that will be tested for obstructions. If an obstruction is found within this radius then a new spawn point will be generated.")]
         public float ClearRadius = 1.8f;
-        [SerializeField, Tooltip("The relative weight of this waypoint in terms of it's interest. A higher value will increase the chances of this waypoint being selected all other choice factors being equal."), Range(0.001f, 1f)]
+        [SerializeField, Tooltip("The relative weight of this waypoint in terms of it's interest. A higher value will increase the chances of this waypoint being selected all other choice factors being equal. A weight of 0 means it will never be selected, this is useful when you want a waypoint that can only be assigned in code."), Range(0f, 1f)]
         internal float weight = 0.5f;
         [SerializeField, Tooltip("Time, in seconds, to wait before re-enabling the waypoint after it is visited. If 0 the waypoint will destroyed once visited.")]
         internal float reEnableWaitTime = 0;
