@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using static WizardsCode.AI.Sensor;
 using WizardsCode.Character;
+using System;
+using Random = UnityEngine.Random;
 
 namespace WizardsCode.AI
 {
@@ -43,6 +45,8 @@ namespace WizardsCode.AI
         [SerializeField, Tooltip("The height above the ground or nearest obstacle that will cause this rig" +
             " automatically land.")]
         float m_LandingHeight = 0.5f;
+        [SerializeField, Tooltip("The minimum amount of time to spend on the ground after landing. The Dragon will not take off again until this amount of time (in seconds) has passed.")]
+        float m_MinTimeOnGround = 5;
         [SerializeField, Tooltip("The height at which the body is considered to be grounded. Theoretically this should be zero," +
             " however it will often be higher due to the models structure.")]
         float m_GroundedHeight = 0.08f;
@@ -119,6 +123,8 @@ namespace WizardsCode.AI
                 }
             }
         }
+
+        private float m_TimeOfLastLanding;
 
         /// <summary>
         /// Returns true if the body is in the process of taking off.
@@ -313,7 +319,8 @@ namespace WizardsCode.AI
 
             if (isGrounded)
             {
-                if (destination.position.y >= height + m_MinHeight)
+                // FIXME: need height of destination from the ground not absolute height
+                if (destination.position.y >= height + m_MinHeight && m_TimeOfLastLanding + m_MinTimeOnGround < Time.timeSinceLevelLoad)
                 {
                     TakeOff();
                 }
@@ -341,6 +348,7 @@ namespace WizardsCode.AI
             {
                 isLanding = false;
                 isGrounded = true;
+                m_TimeOfLastLanding = Time.timeSinceLevelLoad;
                 return;
             }
 
@@ -442,22 +450,22 @@ namespace WizardsCode.AI
             {
                 if (height > m_MinHeight)
                 {
-                    interimDestination.y = Mathf.Lerp(m_MinHeight + destination.position.y, height + destination.position.y, desiredDirection.sqrMagnitude / prepareToLandDistanceSqr);
+                    interimDestination.y = Mathf.Lerp(m_MinHeight + destination.position.y, destination.position.y, desiredDirection.sqrMagnitude / prepareToLandDistanceSqr);
                 }
                 else
                 {
-                    interimDestination.y = Mathf.Lerp(destination.position.y + destination.position.y, m_MinHeight , desiredDirection.sqrMagnitude / prepareToLandDistanceSqr);
+                    interimDestination.y = Mathf.Lerp(destination.position.y, m_MinHeight , desiredDirection.sqrMagnitude / prepareToLandDistanceSqr);
                 }
             }
             else if (m_AutoLand && desiredDirection.sqrMagnitude > landingDistanceSqr)
             {
                 if (height > m_LandingHeight)
                 {
-                    interimDestination.y = Mathf.Lerp(height + destination.position.y, m_LandingHeight + destination.position.y, desiredDirection.sqrMagnitude / landingDistanceSqr);
+                    interimDestination.y = Mathf.Lerp(destination.position.y, m_LandingHeight + destination.position.y, desiredDirection.sqrMagnitude / landingDistanceSqr);
                 }
                 else
                 {
-                    interimDestination.y = Mathf.Lerp(m_LandingHeight + destination.position.y, height + destination.position.y, desiredDirection.sqrMagnitude / landingDistanceSqr);
+                    interimDestination.y = Mathf.Lerp(m_LandingHeight + destination.position.y,destination.position.y, desiredDirection.sqrMagnitude / landingDistanceSqr);
                 }
             }
             else if (m_AutoLand && destination.position.y < m_LandingHeight)
@@ -508,10 +516,12 @@ namespace WizardsCode.AI
             m_Agent.enabled = true;
             rb.freezeRotation = true;
 
-            if (Random.value < 0.01) {
-                // FIXME: Add ground movement
+            if (m_TimeOfLastLanding + m_MinTimeOnGround < Time.timeSinceLevelLoad && Random.value <= 0.01) {
                 TakeOff();
+                return;
             }
+
+            throw new NotImplementedException("Add ground movement logic.");
         }
         void SetAnimationParameters()
         {
@@ -559,6 +569,7 @@ namespace WizardsCode.AI
         private void OnDrawGizmosSelected()
         {
             if (destination == null) return;
+            if (isGrounded) return;
 
             // Target Direction
             Gizmos.color = Color.yellow;

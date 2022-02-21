@@ -144,9 +144,8 @@ namespace WizardsCode.AI
         {
             get
             {
-                if (m_SteeringRig.isLanding) return false;
+                if (!m_SteeringRig.isFlying) return false;
                 if (m_SteeringRig.isIdle) return false;
-                if (m_SteeringRig.isTakingOff) return false;
 
                 if (Vector3.SqrMagnitude(oldPosition - transform.position) < sqrStuckTolerance)
                 {
