@@ -12,6 +12,7 @@ namespace WizardsCode.AI
     /// </summary>
     public class FlyingSteeringRig : BaseActorController
     {
+        #region Inspector Parameters
         [Header("Flight Controls")]
         [SerializeField, Tooltip("The rigid body that forces will be applied to to make the object fly (or fall in the case of gravity).")]
         internal Rigidbody rb;
@@ -60,6 +61,7 @@ namespace WizardsCode.AI
         [SerializeField, Tooltip("The maximum dive angle that this body can lose vertical height with in a controlled way. 90 is stright down.")]
         [Range(0, 90)]
         float m_MaxDiveAngle = 75;
+        #endregion
 
         private float originalAnimationSpeed;
         private Sensor[] sensorArray;
@@ -78,7 +80,7 @@ namespace WizardsCode.AI
         /// <summary>
         /// Returns true if the body is in an idle state.
         /// </summary>
-        public bool isIdle
+        public override bool isIdle
         {
             get
             {
@@ -188,8 +190,10 @@ namespace WizardsCode.AI
                 }
             }
         }
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
+
             ConfigureSensors();
             
             float landingDistance = m_ArrivalDistance * 5f;
@@ -204,7 +208,8 @@ namespace WizardsCode.AI
 
         protected override void Update()
         {
-            // FIXME: this overrides BaseActorController, so that we can use it in Ink directions, we currently override Update meaning none of the features of the base controller are used. 
+            // FIXME: this overrides BaseActorController, so that we can use it in Ink directions.
+            // However, we currently override Update meaning none of the features of the base controller are enabled - is this a problem? 
         }
 
         public override void MoveTo(Transform destination)
@@ -222,13 +227,13 @@ namespace WizardsCode.AI
         private void ConfigureSensors()
         {
             List<Sensor> sensors = new List<Sensor>();
-            sensors.Add(new Sensor(transform.forward, 3, maxSpeed * 1.5f, m_AvoidanceLayers)); // forward
-            sensors.Add(new Sensor(transform.forward * 2 - transform.right, 1.5f, maxSpeed * 0.6f, m_AvoidanceLayers)); // forward/forward/left
-            sensors.Add(new Sensor(transform.forward - transform.right, 1f, maxSpeed * 0.7f, m_AvoidanceLayers)); // forward/left
-            sensors.Add(new Sensor(transform.forward - transform.right * 2, 0, maxSpeed * 0.8f, m_AvoidanceLayers)); // forward/left/left
-            sensors.Add(new Sensor(transform.forward * 2 + transform.right, 1.5f, maxSpeed * 0.6f, m_AvoidanceLayers)); // forward/forward/right
-            sensors.Add(new Sensor(transform.forward + transform.right, 1f, maxSpeed * 0.7f, m_AvoidanceLayers)); // forward/right
-            sensors.Add(new Sensor(transform.forward + transform.right * 2, 0, maxSpeed * 0.8f, m_AvoidanceLayers)); // forward/right/right
+            sensors.Add(new Sensor(transform.forward, 3, maxSpeed * 1.5f, 1, m_AvoidanceLayers)); // forward
+            sensors.Add(new Sensor(transform.forward * 2 - transform.right, 1.5f, maxSpeed * 0.6f, 0.9f, m_AvoidanceLayers)); // forward/forward/left
+            sensors.Add(new Sensor(transform.forward - transform.right, 1f, maxSpeed * 0.7f, 0.8f, m_AvoidanceLayers)); // forward/left
+            sensors.Add(new Sensor(transform.forward - transform.right * 2, 0, maxSpeed * 0.8f, 0.7f, m_AvoidanceLayers)); // forward/left/left
+            sensors.Add(new Sensor(transform.forward * 2 + transform.right, 1.5f, maxSpeed * 0.9f, m_AvoidanceLayers)); // forward/forward/right
+            sensors.Add(new Sensor(transform.forward + transform.right, 1f, maxSpeed * 0.8f, m_AvoidanceLayers)); // forward/right
+            sensors.Add(new Sensor(transform.forward + transform.right * 2, 0, maxSpeed * 0.7f, m_AvoidanceLayers)); // forward/right/right
 
             sensors.Add(new Sensor(-transform.right, 0, maxSpeed * 0.6f, m_AvoidanceLayers)); // left
             sensors.Add(new Sensor(transform.right, 0, maxSpeed * 0.6f, m_AvoidanceLayers)); // right
@@ -240,7 +245,7 @@ namespace WizardsCode.AI
 
             sensors.Add(new Sensor(-transform.up, 0, m_OptimalHeight, 0.1f, m_AvoidanceLayers)); // down
             sensors.Add(new Sensor(-transform.up - transform.right, 0, m_MinHeight * 0.6f, 0.3f, m_AvoidanceLayers)); // down/left
-            sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight * 0.6f, 0.3f, m_AvoidanceLayers)); // down/forward
+            sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight, 0.3f, m_AvoidanceLayers)); // down/forward
             sensors.Add(new Sensor(-transform.up + transform.right, 0, m_MinHeight * 0.6f, 0.3f, m_AvoidanceLayers)); // down/right
             sensorArray = sensors.ToArray();
         }
@@ -259,7 +264,8 @@ namespace WizardsCode.AI
             Vector3 strength = Vector3.zero;
             for (int i = 0; i < sensorArray.Length; i++)
             {
-                if (destination.position.y < rb.position.y && sensorArray[i].sensorDirection.y < 0)
+                if (GetDestinationPointAdjustedForApproachHeight().y < rb.position.y 
+                    && sensorArray[i].sensorDirection.y < 0)
                 {
                     // skip downward sensors as they would result in a push back up as we are trying to go down.
                     // note that forward and up sensors can still result in a small upward force depending on 
@@ -271,7 +277,7 @@ namespace WizardsCode.AI
 
             return strength * Mathf.Clamp(strength.magnitude, 0, m_MaxAvoidanceLength);
         }
-        private void Start()
+        void Start()
         {
             if (m_Animator)
             {
@@ -331,7 +337,6 @@ namespace WizardsCode.AI
         {
             rb.freezeRotation = true;
 
-            // gravity is in effect so just wait
             if (height < m_GroundedHeight)
             {
                 isLanding = false;
@@ -341,7 +346,7 @@ namespace WizardsCode.AI
 
             Vector3 desiredDirection;
             Vector3 interimDestination = GetDestinationPointAdjustedForApproachHeight();
-
+            
             desiredDirection = (interimDestination - rb.position);
             Vector3 moveDirection = Vector3.zero;
             if (desiredDirection.sqrMagnitude > 1)
@@ -369,6 +374,7 @@ namespace WizardsCode.AI
 
         private void FlightPhysics()
         {
+            m_Agent.enabled = false;
             rb.freezeRotation = false;
 
             Vector3 desiredDirection;
@@ -414,7 +420,7 @@ namespace WizardsCode.AI
         }
 
         /// <summary>
-        /// Create an interim point that is in the same x,z space as the destination but adjusted for height
+        /// Get an interim point that is in the same x,z space as the destination but adjusted for height
         /// to provide a good approach for landing or leisurely flight.
         /// <returns></returns>
         private Vector3 GetDestinationPointAdjustedForApproachHeight()
@@ -425,11 +431,11 @@ namespace WizardsCode.AI
             {
                 if (height > m_OptimalHeight)
                 {
-                    interimDestination.y = Mathf.Lerp(m_OptimalHeight + destination.position.y, height + destination.position.y, desiredDirection.sqrMagnitude / approachDistanceSqr);
+                    interimDestination.y = Mathf.Lerp(m_OptimalHeight + destination.position.y, destination.position.y, desiredDirection.sqrMagnitude / approachDistanceSqr);
                 }
                 else
                 {
-                    interimDestination.y = Mathf.Lerp(height + destination.position.y, m_OptimalHeight + destination.position.y, desiredDirection.sqrMagnitude / approachDistanceSqr);
+                    interimDestination.y = Mathf.Lerp(destination.position.y, m_OptimalHeight + destination.position.y, desiredDirection.sqrMagnitude / approachDistanceSqr);
                 }
             }
             else if (m_AutoLand && desiredDirection.sqrMagnitude > prepareToLandDistanceSqr)
@@ -499,6 +505,7 @@ namespace WizardsCode.AI
         /// </summary>
         private void GroundMovement()
         {
+            m_Agent.enabled = true;
             rb.freezeRotation = true;
 
             if (Random.value < 0.01) {
@@ -530,7 +537,7 @@ namespace WizardsCode.AI
             float forwardVelocity = transform.InverseTransformDirection(rb.velocity).normalized.z;
 
             bool glide = false;
-            if (forwardVelocity > 0.9)
+            if (forwardVelocity > 0.9 && height > m_MinHeight)
             {
                 glide = pitch > -0.2 && pitch < 0.2;
             }
