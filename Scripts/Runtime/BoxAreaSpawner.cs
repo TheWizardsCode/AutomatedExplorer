@@ -151,7 +151,7 @@ namespace WizardsCode.Spawning
         }
 
         /// <summary>
-        /// Adjust the height of a position in the terrain to allow for any obstructions on the terrain.
+        /// Adjust the height of a position in the terrain or colliders below to allow for any obstructions on the terrain.
         /// </summary>
         /// <param name="pos">The approximate position the object should be placed</param>
         /// <param name="go">The game object to place at the position</param>
