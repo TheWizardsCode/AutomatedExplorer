@@ -315,7 +315,12 @@ namespace WizardsCode.AI
                 originalAnimationSpeed = m_Animator.speed;
             }
 
-            isGrounded = height <= m_GroundedHeight;
+            if (height <= m_GroundedHeight) {
+                isGrounded = true;
+            } else
+            {
+                isTakingOff = true;
+            }
             isLanding = false;
         }
 
