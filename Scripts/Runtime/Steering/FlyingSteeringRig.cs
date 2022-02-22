@@ -256,31 +256,43 @@ namespace WizardsCode.AI
             sensors.Add(new Sensor(transform.right, 0, maxSpeed * 0.6f, m_AvoidanceLayers)); // right
 
             sensors.Add(new Sensor(transform.up, 0, maxSpeed * 0.5f, m_AvoidanceLayers)); // up
-            sensors.Add(new Sensor(transform.up + transform.forward, 0, maxSpeed * 0.7f, m_AvoidanceLayers)); // up/forward
-            sensors.Add(new Sensor(transform.up - transform.right, 0, maxSpeed * 0.7f, m_AvoidanceLayers)); // up/left
-            sensors.Add(new Sensor(transform.up + transform.right, 0, maxSpeed * 0.7f, m_AvoidanceLayers)); // up/right
+            sensors.Add(new Sensor(transform.up + transform.forward, 0, maxSpeed * 1.5f, 1.0f, m_AvoidanceLayers)); // up/forward
+            sensors.Add(new Sensor(transform.up + transform.forward * 2, 0, maxSpeed * 1.5f, 1.0f, m_AvoidanceLayers)); // up/forward/forward
+            sensors.Add(new Sensor(transform.up - transform.right, 0, maxSpeed * 0.7f, 0.8f, m_AvoidanceLayers)); // up/left
+            sensors.Add(new Sensor(transform.up + transform.right, 0, maxSpeed * 0.7f, 0.8f, m_AvoidanceLayers)); // up/right
 
             sensors.Add(new Sensor(-transform.up, 0, m_OptimalHeight, 0.1f, m_AvoidanceLayers)); // down
-            sensors.Add(new Sensor(-transform.up - transform.right, 0, m_MinHeight * 0.6f, 0.3f, m_AvoidanceLayers)); // down/left
-            sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight, 0.3f, m_AvoidanceLayers)); // down/forward
-            sensors.Add(new Sensor(-transform.up + transform.right, 0, m_MinHeight * 0.6f, 0.3f, m_AvoidanceLayers)); // down/right
+            sensors.Add(new Sensor(-transform.up - transform.right, 0, m_MinHeight * 0.4f, 0.3f, m_AvoidanceLayers)); // down/left
+            sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight, 0.4f, m_AvoidanceLayers)); // down/forward
+            sensors.Add(new Sensor(-transform.up + transform.forward * 2, 0, m_MinHeight * 2, 0.2f, m_AvoidanceLayers)); // down/forward/forward
+            sensors.Add(new Sensor(-transform.up + transform.right, 0, m_MinHeight * 0.6f, 0.4f, m_AvoidanceLayers)); // down/right
             sensorArray = sensors.ToArray();
         }
 
         /// <summary>
         /// Get a direction that will push the object away from detected obstacles.
+        /// 
+        /// <param name="updateAllSensors">If true then all sensors will be updated immediately. Use this if you need very accurate avoidance. Othersie leave as the default false.</param>
         /// </summary>
-        Vector3 GetRepulsionDirection()
+        Vector3 GetRepulsionDirection(bool updateAllSensors = false)
         {
             if (isLanding) return Vector3.zero;
 
-            sensorArray[nextSensorToPulse].Pulse(this);
-            nextSensorToPulse++;
-            if (nextSensorToPulse == sensorArray.Length) nextSensorToPulse = 0;
+            if (!updateAllSensors)
+            {
+                sensorArray[nextSensorToPulse].Pulse(this);
+                nextSensorToPulse++;
+                if (nextSensorToPulse == sensorArray.Length) nextSensorToPulse = 0;
+            }
 
             Vector3 strength = Vector3.zero;
             for (int i = 0; i < sensorArray.Length; i++)
             {
+                if (updateAllSensors)
+                {
+                    sensorArray[i].Pulse(this);
+                }
+
                 if (GetDestinationPointAdjustedForApproachHeight().y < rb.position.y 
                     && sensorArray[i].sensorDirection.y < 0)
                 {
@@ -515,6 +527,11 @@ namespace WizardsCode.AI
         /// </summary>
         private void TakeOff()
         {
+            Vector3 repulsion = GetRepulsionDirection(true);
+            if (repulsion.y < 0) { 
+                return; 
+            }
+
             rb.freezeRotation = false;
 
             Vector3 moveDirection = Vector3.zero;
@@ -601,10 +618,6 @@ namespace WizardsCode.AI
             {
                 for (int i = 0; i < sensorArray.Length; i++)
                 {
-                    if (destination.position.y < rb.position.y && sensorArray[i].sensorDirection.y < 0) {
-                        continue;
-                    }
-
                     Vector3 direction = rb.transform.TransformDirection(sensorArray[i].sensorDirection);
                     float length = Mathf.Lerp(0, sensorArray[i].maxLength, Mathf.Clamp01(rb.velocity.magnitude / maxSpeed));
 
