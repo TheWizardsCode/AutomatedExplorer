@@ -539,18 +539,19 @@ AnimatorStateMachine:
   m_ChildStateMachines:
   - serializedVersion: 1
     m_StateMachine: {fileID: -3305796469165601778}
-    m_Position: {x: 550, y: 440, z: 0}
+    m_Position: {x: 630, y: 420, z: 0}
   - serializedVersion: 1
     m_StateMachine: {fileID: 2881775655748264109}
-    m_Position: {x: 270, y: 70, z: 0}
+    m_Position: {x: 430, y: 60, z: 0}
   m_AnyStateTransitions: []
   m_EntryTransitions: []
   m_StateMachineTransitions:
+  - first: {fileID: -3305796469165601778}
+    second:
+    - {fileID: 6010986857719939538}
   - first: {fileID: 2881775655748264109}
     second:
     - {fileID: -298753130373294560}
-  - first: {fileID: -3305796469165601778}
-    second: []
   m_StateMachineBehaviours: []
   m_AnyStatePosition: {x: 50, y: 20, z: 0}
   m_EntryPosition: {x: 30, y: 190, z: 0}
@@ -660,67 +661,67 @@ AnimatorController:
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: isTakingOff
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: isLanding
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: roll
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: pitch
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: yaw
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: verticalVelocity
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: forwardVelocity
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: glide
     m_Type: 4
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: turn
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   - m_Name: forward
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: 9100000}
   m_AnimatorLayers:
   - serializedVersion: 5
     m_Name: Base Layer
@@ -793,17 +794,9 @@ BlendTree:
   m_Name: Fly Down
   m_Childs:
   - serializedVersion: 2
-    m_Motion: {fileID: 7400000, guid: e2f236372fdbf904ab33d126c4da79b9, type: 2}
-    m_Threshold: 13
-    m_Position: {x: 0, y: 0}
-    m_TimeScale: 1
-    m_CycleOffset: 0
-    m_DirectBlendParameter: roll
-    m_Mirror: 0
-  - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: baa36b7c17a4288439f4e20dd5e8e798, type: 2}
     m_Threshold: 18
-    m_Position: {x: -0.5, y: -0.2}
+    m_Position: {x: -0.35, y: -0.2}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity
@@ -819,7 +812,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: 2c46f8b459a2e39489ad33e0c25e45e4, type: 2}
     m_Threshold: 28
-    m_Position: {x: 0.5, y: -0.2}
+    m_Position: {x: 0.35, y: -0.2}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity
@@ -827,7 +820,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: 865afa414143d9b4dbb47938baa15854, type: 2}
     m_Threshold: 33
-    m_Position: {x: -0.7, y: -0.8}
+    m_Position: {x: -0.6, y: -0.8}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity
@@ -850,7 +843,7 @@ BlendTree:
     m_Mirror: 0
   m_BlendParameter: yaw
   m_BlendParameterY: verticalVelocity
-  m_MinThreshold: 13
+  m_MinThreshold: 18
   m_MaxThreshold: 43
   m_UseAutomaticThresholds: 0
   m_NormalizedBlendValues: 0
@@ -873,7 +866,7 @@ BlendTree:
     m_Mirror: 0
   - serializedVersion: 2
     m_Motion: {fileID: 6334421064192970886}
-    m_Threshold: 0.4
+    m_Threshold: 0.3
     m_Position: {x: 0.2, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
@@ -1034,6 +1027,23 @@ BlendTree:
   m_UseAutomaticThresholds: 1
   m_NormalizedBlendValues: 0
   m_BlendType: 3
+--- !u!1109 &6010986857719939538
+AnimatorTransition:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_Conditions:
+  - m_ConditionMode: 1
+    m_ConditionEvent: isGrounded
+    m_EventTreshold: 0
+  m_DstStateMachine: {fileID: 0}
+  m_DstState: {fileID: -7148949229824281150}
+  m_Solo: 0
+  m_Mute: 0
+  m_IsExit: 0
+  serializedVersion: 1
 --- !u!206 &6311787111152291628
 BlendTree:
   m_ObjectHideFlags: 1
@@ -1084,7 +1094,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: cc9cbc5b07c4f5d4ebee64760b87f7ab, type: 2}
     m_Threshold: 0.2
-    m_Position: {x: -0.6, y: 0.4}
+    m_Position: {x: -0.4, y: 0.4}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity
@@ -1092,7 +1102,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: a3bba46aa8991b143b164fe8f22f6d79, type: 2}
     m_Threshold: 0.2979592
-    m_Position: {x: 0, y: 0.5}
+    m_Position: {x: 0.099, y: 0.513}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity
@@ -1100,7 +1110,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: ba3ade90af933bc4ea3f02fa11877300, type: 2}
     m_Threshold: 0.39591837
-    m_Position: {x: 0.6, y: 0.4}
+    m_Position: {x: 0.4, y: 0.4}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity
@@ -1108,7 +1118,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: 0b47b571577c971449a4f1f5d234b2fb, type: 2}
     m_Threshold: 0.4938776
-    m_Position: {x: -0.4, y: 0}
+    m_Position: {x: -0.2, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity
@@ -1124,7 +1134,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: 7e26352eb41642447820642ab5e48ea5, type: 2}
     m_Threshold: 0.689796
-    m_Position: {x: 0.4, y: 0}
+    m_Position: {x: 0.2, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity
@@ -1155,7 +1165,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: cc9cbc5b07c4f5d4ebee64760b87f7ab, type: 2}
     m_Threshold: 14
-    m_Position: {x: -0.5, y: 0}
+    m_Position: {x: -0.4, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity
@@ -1171,7 +1181,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: ba3ade90af933bc4ea3f02fa11877300, type: 2}
     m_Threshold: 26
-    m_Position: {x: 0.5, y: 0}
+    m_Position: {x: 0.4, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity
@@ -1179,7 +1189,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: 6ee1aad5e0fb6404e83daaa12fe3b60c, type: 2}
     m_Threshold: 30
-    m_Position: {x: -0.7, y: 0.7}
+    m_Position: {x: -0.65, y: 0.7}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity
@@ -1195,7 +1205,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: f5f6ad99c462a594b9a74b5934303e29, type: 2}
     m_Threshold: 38
-    m_Position: {x: 0.7, y: 0.7}
+    m_Position: {x: 0.65, y: 0.7}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: angularVelocity

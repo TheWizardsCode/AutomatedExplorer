@@ -130,6 +130,8 @@ namespace WizardsCode.AI
         }
 
         private float m_TimeOfLastLanding;
+        private float previousForwardForce;
+        private float previousVerticalForce;
 
         /// <summary>
         /// Returns true if the body is in the process of taking off.
@@ -261,11 +263,11 @@ namespace WizardsCode.AI
             sensors.Add(new Sensor(transform.up - transform.right, 0, maxSpeed * 0.7f, 0.8f, m_AvoidanceLayers)); // up/left
             sensors.Add(new Sensor(transform.up + transform.right, 0, maxSpeed * 0.7f, 0.8f, m_AvoidanceLayers)); // up/right
 
-            sensors.Add(new Sensor(-transform.up, 0, m_OptimalHeight, 0.1f, m_AvoidanceLayers)); // down
-            sensors.Add(new Sensor(-transform.up - transform.right, 0, m_MinHeight * 0.4f, 0.3f, m_AvoidanceLayers)); // down/left
-            sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight, 0.4f, m_AvoidanceLayers)); // down/forward
+            sensors.Add(new Sensor(-transform.up, 0, m_OptimalHeight * 2, 0.1f, m_AvoidanceLayers)); // down
+            sensors.Add(new Sensor(-transform.up - transform.right, 0, m_MinHeight * 0.5f, 0.3f, m_AvoidanceLayers)); // down/left
+            sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight, 0.5f, m_AvoidanceLayers)); // down/forward
             sensors.Add(new Sensor(-transform.up + transform.forward * 2, 0, m_MinHeight * 2, 0.2f, m_AvoidanceLayers)); // down/forward/forward
-            sensors.Add(new Sensor(-transform.up + transform.right, 0, m_MinHeight * 0.6f, 0.4f, m_AvoidanceLayers)); // down/right
+            sensors.Add(new Sensor(-transform.up + transform.right, 0, m_MinHeight * 0.7f, 0.4f, m_AvoidanceLayers)); // down/right
             sensorArray = sensors.ToArray();
         }
 
@@ -514,9 +516,12 @@ namespace WizardsCode.AI
             // Vertical force to add
             float verticalForce = Mathf.Lerp(0, m_MaxVerticalForce, Mathf.Clamp01(moveDirection.normalized.y));
 
+            previousForwardForce = forwardForce;
+            previousVerticalForce = verticalForce;
+
             // Add the forces
-            rb.AddForce((forwardForce * moveDirection.normalized)
-                + (verticalForce * rb.transform.up));
+            rb.AddForce((Mathf.Lerp(previousForwardForce, forwardForce, Time.deltaTime) * moveDirection.normalized)
+                + (Mathf.Lerp(previousVerticalForce, verticalForce, Time.deltaTime) * rb.transform.up));
 
             // Don't go over maximum speed
             rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxSpeed);
