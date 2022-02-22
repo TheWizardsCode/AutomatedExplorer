@@ -12,7 +12,7 @@ namespace WizardsCode.AI
     /// This rig provides a 3D navigation for flying creatures and objects. It detects opstacles on the expected path an flies over
     /// them or around them if it can. 
     /// </summary>
-    public class FlyingSteeringRig : BaseActorController
+    public class FlyingSteeringRig : AnimatorActorController
     {
         #region Inspector Parameters
         [Header("Flight Controls")]
@@ -119,6 +119,11 @@ namespace WizardsCode.AI
             {
                 if (m_Animator && isGrounded != value)
                 {
+                    m_Agent.enabled = value;
+                    if (value)
+                    {
+                        m_Agent.Warp(transform.position);
+                    }
                     m_Animator.SetBool(AnimationHash.isGrounded, value);
                 }
             }
@@ -135,10 +140,17 @@ namespace WizardsCode.AI
             {
                 if (m_Animator)
                 {
-                    return m_Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == AnimationHash.takeOffState;
+                    return m_Animator.GetBool(AnimationHash.isTakingOff);
                 } else
                 {
                     return false;
+                }
+            }
+            set
+            {
+                if (m_Animator)
+                {
+                    m_Animator.SetBool(AnimationHash.isTakingOff, value);
                 }
             }
         }
@@ -214,8 +226,7 @@ namespace WizardsCode.AI
 
         protected override void Update()
         {
-            // FIXME: this overrides BaseActorController, so that we can use it in Ink directions.
-            // However, we currently override Update meaning none of the features of the base controller are enabled - is this a problem? 
+            if (isGrounded) base.Update();    
         }
 
         public override void MoveTo(Transform destination)
@@ -233,7 +244,7 @@ namespace WizardsCode.AI
         private void ConfigureSensors()
         {
             List<Sensor> sensors = new List<Sensor>();
-            sensors.Add(new Sensor(transform.forward, 3, maxSpeed * 1.5f, 1, m_AvoidanceLayers)); // forward
+            sensors.Add(new Sensor(transform.forward, 3, maxSpeed * 1.5f, 1, m_AvoidanceLayers)); // near forward
             sensors.Add(new Sensor(transform.forward * 2 - transform.right, 1.5f, maxSpeed * 0.6f, 0.9f, m_AvoidanceLayers)); // forward/forward/left
             sensors.Add(new Sensor(transform.forward - transform.right, 1f, maxSpeed * 0.7f, 0.8f, m_AvoidanceLayers)); // forward/left
             sensors.Add(new Sensor(transform.forward - transform.right * 2, 0, maxSpeed * 0.8f, 0.7f, m_AvoidanceLayers)); // forward/left/left
@@ -328,6 +339,12 @@ namespace WizardsCode.AI
                 {
                     GroundMovement();
                 }
+            } 
+            else if (isTakingOff)
+            {
+                // Take off is handled in the animation controller, so once we are flying we are good.
+                isTakingOff = height < m_LandingHeight;
+                FlightPhysics();
             }
             else if (isLanding)
             {
@@ -382,7 +399,6 @@ namespace WizardsCode.AI
 
         private void FlightPhysics()
         {
-            m_Agent.enabled = false;
             rb.freezeRotation = false;
 
             Vector3 desiredDirection;
@@ -504,6 +520,7 @@ namespace WizardsCode.AI
             Vector3 moveDirection = Vector3.zero;
             moveDirection = new Vector3(0, 1000, 1000);
             isGrounded = false;
+            isTakingOff = true;
 
             ApplyForces(moveDirection);
         }
@@ -513,7 +530,6 @@ namespace WizardsCode.AI
         /// </summary>
         private void GroundMovement()
         {
-            m_Agent.enabled = true;
             rb.freezeRotation = true;
 
             if (m_TimeOfLastLanding + m_MinTimeOnGround < Time.timeSinceLevelLoad && Random.value <= 0.01) {
@@ -521,7 +537,10 @@ namespace WizardsCode.AI
                 return;
             }
 
-            throw new NotImplementedException("Add ground movement logic.");
+            if (m_Agent.destination != destination.position)
+            {
+                m_Agent.SetDestination(destination.position);
+            }
         }
         void SetAnimationParameters()
         {
@@ -530,7 +549,7 @@ namespace WizardsCode.AI
             Quaternion q = rb.rotation;
             float rollRad = Mathf.Atan2(2 * q.y * q.w - 2 * q.x * q.z, 1 - 2 * q.y * q.y - 2 * q.z * q.z);
             float pitchRad = Mathf.Atan2(2 * q.x * q.w - 2 * q.y * q.z, 1 - 2 * q.x * q.x - 2 * q.z * q.z);
-            //float yawRad = Mathf.Asin(2 * q.x * q.y + 2 * q.z * q.w);
+            float yawRad = Mathf.Asin(2 * q.x * q.y + 2 * q.z * q.w);
 
             float pitch;
             if (pitchRad <= 0) // up
@@ -540,7 +559,7 @@ namespace WizardsCode.AI
             {
                 pitch = (Mathf.Rad2Deg * -pitchRad) / m_MaxDiveAngle;
             }
-            //float yaw = yawRad / 1.52f;
+            float yaw = yawRad / 1.52f;
             float roll = rollRad / 3.14f;
             float strafeVelocity = transform.InverseTransformDirection(rb.velocity).normalized.x;
             float verticalVelocity = rb.velocity.normalized.y;
@@ -699,6 +718,7 @@ namespace WizardsCode.AI
         {
             #region parameters
             internal static int isGrounded = Animator.StringToHash("isGrounded");
+            internal static int isTakingOff= Animator.StringToHash("isTakingOff");
             internal static int isLanding = Animator.StringToHash("isLanding");
 
             internal static int roll = Animator.StringToHash("roll");
