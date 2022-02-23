@@ -210,6 +210,31 @@ namespace WizardsCode.AI
                 }
             }
         }
+
+        private Transform cachedDestination;
+        private float cachedDestinationHeight;
+        /// <summary>
+        /// Returns the height of the current destination relative to the nearest obstacle below it.
+        /// </summary>
+        public float DestinationHeight
+        {
+            get
+            {
+                if (cachedDestination != destination)
+                {
+                    RaycastHit hit;
+                    if (Physics.Raycast(destination.position, Vector3.down, out hit, Mathf.Infinity))
+                    {
+                        cachedDestinationHeight = hit.distance;
+                    }
+                    else
+                    {
+                        cachedDestinationHeight = 0;
+                    }
+                }
+                return cachedDestinationHeight;
+            }
+        }
         protected override void Awake()
         {
             base.Awake();
@@ -219,10 +244,10 @@ namespace WizardsCode.AI
             float landingDistance = m_ArrivalDistance * 5f;
             landingDistanceSqr = landingDistance * landingDistance;
             
-            float prepareToLandDistance = landingDistance + (landingDistance * 2f);
+            float prepareToLandDistance = landingDistance * 4f;
             prepareToLandDistanceSqr = prepareToLandDistance * prepareToLandDistance;
 
-            float approachDistance = prepareToLandDistance + (landingDistance * 5f);
+            float approachDistance = landingDistance * 6f;
             approachDistanceSqr = approachDistance * approachDistance;
         }
 
@@ -295,7 +320,7 @@ namespace WizardsCode.AI
                     sensorArray[i].Pulse(this);
                 }
 
-                if (GetDestinationPointAdjustedForApproachHeight().y < rb.position.y 
+                if (GetInterimPointAdjustedForApproachHeight().y < rb.position.y 
                     && sensorArray[i].sensorDirection.y < 0)
                 {
                     // skip downward sensors as they would result in a push back up as we are trying to go down.
@@ -389,7 +414,7 @@ namespace WizardsCode.AI
             }
 
             Vector3 desiredDirection;
-            Vector3 interimDestination = GetDestinationPointAdjustedForApproachHeight();
+            Vector3 interimDestination = GetInterimPointAdjustedForApproachHeight();
             
             desiredDirection = (interimDestination - rb.position);
             Vector3 moveDirection = Vector3.zero;
@@ -421,7 +446,7 @@ namespace WizardsCode.AI
             rb.freezeRotation = false;
 
             Vector3 desiredDirection;
-            Vector3 interimDestination = GetDestinationPointAdjustedForApproachHeight();
+            Vector3 interimDestination = GetInterimPointAdjustedForApproachHeight();
 
             desiredDirection = (interimDestination - rb.position);
             Vector3 moveDirection = Vector3.zero;
@@ -466,41 +491,33 @@ namespace WizardsCode.AI
         /// Get an interim point that is in the same x,z space as the destination but adjusted for height
         /// to provide a good approach for landing or leisurely flight.
         /// <returns></returns>
-        private Vector3 GetDestinationPointAdjustedForApproachHeight()
+        private Vector3 GetInterimPointAdjustedForApproachHeight()
         {
             Vector3 interimDestination = destination.position;
             Vector3 desiredDirection = (destination.position - rb.position);
             if (desiredDirection.sqrMagnitude > approachDistanceSqr)
             {
-                if (height > m_OptimalHeight)
+                if (DestinationHeight > m_OptimalHeight)
                 {
-                    interimDestination.y = Mathf.Lerp(m_OptimalHeight + destination.position.y, destination.position.y, desiredDirection.sqrMagnitude / approachDistanceSqr);
+                    interimDestination.y = destination.position.y;
                 }
                 else
                 {
-                    interimDestination.y = Mathf.Lerp(destination.position.y, m_OptimalHeight + destination.position.y, desiredDirection.sqrMagnitude / approachDistanceSqr);
+                    interimDestination.y = m_OptimalHeight;
                 }
             }
             else if (m_AutoLand && desiredDirection.sqrMagnitude > prepareToLandDistanceSqr)
             {
-                if (height > m_MinHeight)
+                if (DestinationHeight < m_MinHeight)
                 {
-                    interimDestination.y = Mathf.Lerp(m_MinHeight + destination.position.y, destination.position.y, desiredDirection.sqrMagnitude / prepareToLandDistanceSqr);
-                }
-                else
-                {
-                    interimDestination.y = Mathf.Lerp(destination.position.y, m_MinHeight , desiredDirection.sqrMagnitude / prepareToLandDistanceSqr);
+                    interimDestination.y = m_MinHeight;
                 }
             }
             else if (m_AutoLand && desiredDirection.sqrMagnitude > landingDistanceSqr)
             {
-                if (height > m_LandingHeight)
+                if (DestinationHeight < m_LandingHeight)
                 {
-                    interimDestination.y = Mathf.Lerp(destination.position.y, m_LandingHeight + destination.position.y, desiredDirection.sqrMagnitude / landingDistanceSqr);
-                }
-                else
-                {
-                    interimDestination.y = Mathf.Lerp(m_LandingHeight + destination.position.y,destination.position.y, desiredDirection.sqrMagnitude / landingDistanceSqr);
+                    interimDestination.y = destination.position.y;
                 }
             }
             else if (m_AutoLand && destination.position.y < m_LandingHeight)
