@@ -172,40 +172,46 @@ namespace WizardsCode.Spawning
 
             RaycastHit hit;
             float height = 0;
-            bool hasHit = Physics.Raycast(pos, Vector3.down, out hit, Mathf.Infinity);
-            if (hasHit)
-            {
-                height = hit.distance;
+            bool hasHit = false;
 
-                if (AdjustHeight)
+            while (!hasHit)
+            {
+                hasHit = Physics.Raycast(pos, Vector3.down, out hit, Mathf.Infinity);
+                if (hasHit)
                 {
-                    if (height + clearance < minHeight)
+                    height = hit.distance;
+
+                    if (AdjustHeight)
                     {
-                        pos.y = hit.point.y + minHeight + clearance;
+                        if (height + clearance < minHeight)
+                        {
+                            pos.y = hit.point.y + minHeight + clearance;
+                        }
+                        else if (height + clearance > maxHeight)
+                        {
+                            pos.y = hit.point.y + maxHeight - clearance;
+                        }
                     }
-                    else if (height + clearance > maxHeight)
+
+                    if (!SpawnBelowWater)
                     {
-                        pos.y = hit.point.y + maxHeight - clearance;
+                        float waterHeight = hit.distance;
+
+                        if (pos.y < waterHeight + clearance)
+                        {
+                            pos.y = waterHeight + clearance;
+                        }
+                        else if (pos.y - waterHeight > maxHeight)
+                        {
+                            pos.y = waterHeight + Random.Range(clearance, maxHeight);
+                        }
                     }
                 }
-
-                if (!SpawnBelowWater)
+                else
                 {
-                    float waterHeight = hit.distance;
-
-                    if (pos.y < waterHeight + clearance)
-                    {
-                        pos.y = waterHeight + clearance;
-                    }
-                    else if (pos.y - waterHeight > maxHeight)
-                    {
-                        pos.y = waterHeight + Random.Range(clearance, maxHeight);
-                    }
+                    Debug.LogError($"{name} has `AdjustHeight` enabled but there is no raycast hit below {pos}. Trying again 10 meters higher.");
+                    pos.y += 10;
                 }
-            }
-            else
-            {
-                Debug.LogError($"{name} has `AdjustHeight` enabled but there is no raycast hit below {pos}. Relying on the initial spawn positions height.");
             }
 
             return pos;
