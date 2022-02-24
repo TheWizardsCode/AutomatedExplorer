@@ -9,7 +9,7 @@ namespace WizardsCode.Kalmeer.Wildlife
         AudioClip[] m_WingFlapClip;
 
         AudioSource audioSource;
-
+        float timeOfLastSound;
         private void Awake()
         {
             audioSource = GetComponent<AudioSource>();
@@ -19,9 +19,14 @@ namespace WizardsCode.Kalmeer.Wildlife
         {
             if (m_WingFlapClip.Length == 0) return;
 
-            audioSource.clip = m_WingFlapClip[Random.Range(0, m_WingFlapClip.Length)];
-            audioSource.pitch = Random.Range(0.95f, 1.05f);
-            audioSource.Play();
+            if (Time.timeSinceLevelLoad > timeOfLastSound)
+            {
+                audioSource.clip = m_WingFlapClip[Random.Range(0, m_WingFlapClip.Length)];
+                audioSource.pitch = Random.Range(0.95f, 1.05f);
+                audioSource.Play();
+
+                timeOfLastSound = Time.timeSinceLevelLoad + (audioSource.clip.length * 1.1f);
+            }
         }
     }
 }
