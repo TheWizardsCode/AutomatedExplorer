@@ -30,9 +30,9 @@ namespace WizardsCode.AI
         float m_MaxForwardForce = 10;
         [SerializeField, Tooltip("The maximum forward velocity for this body.")]
         internal float maxSpeed = 8;
-        [SerializeField, Tooltip("The maximum distance that can be steered from the target direction. Setting this higher will allow the body to go more away from a direct line to the target.")]
-        [Range(1f, 5f)]
-        float m_MaxAvoidanceLength = 2f;
+        [SerializeField, Tooltip("The avoidance strength of the body. A higher setting will result in the body moving rapidly away from obstructions, while a lower setting will result in slower, smoother movements.")]
+        [Range(0.1f, 5f)]
+        float m_AvoidanceStrength = 2f;
         [SerializeField, Tooltip("The body will attempt to avoid colliders on these layers.")]
         LayerMask m_AvoidanceLayers;
 
@@ -197,17 +197,7 @@ namespace WizardsCode.AI
         {
             get
             {
-                //OPTIMIZE: cache the result of this for a few frames at a time since it is potentially called multiple times a frame
-
-                RaycastHit hit;
-                if (Physics.Raycast(rb.position, Vector3.down, out hit, Mathf.Infinity))
-                {
-                    return hit.distance;
-                }
-                else
-                {
-                    return 0;
-                }
+                return GetObstructionHeight(rb.position);
             }
         }
 
@@ -222,6 +212,8 @@ namespace WizardsCode.AI
             {
                 if (cachedDestination != destination)
                 {
+                    cachedDestination = destination;
+
                     RaycastHit hit;
                     if (Physics.Raycast(destination.position, Vector3.down, out hit, Mathf.Infinity))
                     {
@@ -233,6 +225,25 @@ namespace WizardsCode.AI
                     }
                 }
                 return cachedDestinationHeight;
+            }
+        }
+
+        /// <summary>
+        /// Get the ground height below a given point, or the heighest point of any obstruction below that point.
+        /// </summary>
+        /// <param name="point">The heighest obstruction point below the supplied point or 0 if no obstruction is seen.</param>
+        /// <returns></returns>
+        public float GetObstructionHeight(Vector3 point)
+        {
+            //OPTIMIZE: cache the result of this for a few frames at a time since it is potentially called multiple times a frame
+            RaycastHit hit;
+            if (Physics.Raycast(point, Vector3.down, out hit, Mathf.Infinity))
+            {
+                return hit.distance;
+            }
+            else
+            {
+                return 0;
             }
         }
         protected override void Awake()
@@ -270,29 +281,35 @@ namespace WizardsCode.AI
 
         private void ConfigureSensors()
         {
+            float forwardSensitivity = 0.8f;
+            float sidewaysSensitivity = 0.2f;
+            float upSensitivity = 1f;
+            float downSensitivity = 1f;
+
             List<Sensor> sensors = new List<Sensor>();
-            sensors.Add(new Sensor(transform.forward, 3, maxSpeed * 1.5f, 1, m_AvoidanceLayers)); // near forward
-            sensors.Add(new Sensor(transform.forward * 2 - transform.right, 1.5f, maxSpeed * 0.6f, 0.9f, m_AvoidanceLayers)); // forward/forward/left
-            sensors.Add(new Sensor(transform.forward - transform.right, 1f, maxSpeed * 0.7f, 0.8f, m_AvoidanceLayers)); // forward/left
-            sensors.Add(new Sensor(transform.forward - transform.right * 2, 0, maxSpeed * 0.8f, 0.7f, m_AvoidanceLayers)); // forward/left/left
-            sensors.Add(new Sensor(transform.forward * 2 + transform.right, 1.5f, maxSpeed * 0.9f, m_AvoidanceLayers)); // forward/forward/right
-            sensors.Add(new Sensor(transform.forward + transform.right, 1f, maxSpeed * 0.8f, m_AvoidanceLayers)); // forward/right
-            sensors.Add(new Sensor(transform.forward + transform.right * 2, 0, maxSpeed * 0.7f, m_AvoidanceLayers)); // forward/right/right
+            sensors.Add(new Sensor(transform.forward, true, 3, maxSpeed * 1.5f, forwardSensitivity * 1f, m_AvoidanceLayers)); // near forward
+            sensors.Add(new Sensor(transform.forward * 2 - transform.right, true, 1.5f, maxSpeed * 0.6f, forwardSensitivity * sidewaysSensitivity * 0.6f, m_AvoidanceLayers)); // forward/forward/left
+            sensors.Add(new Sensor(transform.forward - transform.right, true, 1f, maxSpeed * 0.7f, forwardSensitivity * sidewaysSensitivity * 0.4f, m_AvoidanceLayers)); // forward/left
+            sensors.Add(new Sensor(transform.forward - transform.right * 2, true, 0, maxSpeed * 0.8f, forwardSensitivity * sidewaysSensitivity * 0.2f, m_AvoidanceLayers)); // forward/left/left
+            sensors.Add(new Sensor(transform.forward * 2 + transform.right, true, 1.5f, maxSpeed * 0.9f, forwardSensitivity * sidewaysSensitivity * 0.6f, m_AvoidanceLayers));  ; // forward/forward/right
+            sensors.Add(new Sensor(transform.forward + transform.right, true, 1f, maxSpeed * 0.8f, forwardSensitivity * sidewaysSensitivity * 0.4f, m_AvoidanceLayers)); // forward/right
+            sensors.Add(new Sensor(transform.forward + transform.right * 2, true, 0, maxSpeed * 0.7f, forwardSensitivity * sidewaysSensitivity * 0.2f, m_AvoidanceLayers)); // forward/right/right
 
-            sensors.Add(new Sensor(-transform.right, 0, maxSpeed * 0.6f, m_AvoidanceLayers)); // left
-            sensors.Add(new Sensor(transform.right, 0, maxSpeed * 0.6f, m_AvoidanceLayers)); // right
+            sensors.Add(new Sensor(-transform.right, true, 0, maxSpeed * 0.6f, sidewaysSensitivity * 0.3f, m_AvoidanceLayers)); // left
+            sensors.Add(new Sensor(transform.right, true, 0, maxSpeed * 0.6f, sidewaysSensitivity * 0.3f, m_AvoidanceLayers)); // right
 
-            sensors.Add(new Sensor(transform.up, 0, maxSpeed * 0.5f, m_AvoidanceLayers)); // up
-            sensors.Add(new Sensor(transform.up + transform.forward, 0, maxSpeed * 1.5f, 1.0f, m_AvoidanceLayers)); // up/forward
-            sensors.Add(new Sensor(transform.up + transform.forward * 2, 0, maxSpeed * 1.5f, 1.0f, m_AvoidanceLayers)); // up/forward/forward
-            sensors.Add(new Sensor(transform.up - transform.right, 0, maxSpeed * 0.7f, 0.8f, m_AvoidanceLayers)); // up/left
-            sensors.Add(new Sensor(transform.up + transform.right, 0, maxSpeed * 0.7f, 0.8f, m_AvoidanceLayers)); // up/right
+            sensors.Add(new Sensor(transform.up, false, 0, maxSpeed * 0.5f, upSensitivity * 0.6f, m_AvoidanceLayers)); // up
+            sensors.Add(new Sensor(transform.up + transform.forward, false, 0, maxSpeed * 1.5f, upSensitivity * 0.6f, m_AvoidanceLayers)); // up/forward
+            sensors.Add(new Sensor(transform.up + transform.forward * 2, false, 0, maxSpeed * 1.5f, upSensitivity * 0.4f, m_AvoidanceLayers)); // up/forward/forward
+            sensors.Add(new Sensor(transform.up - transform.right, false, 0, maxSpeed * 0.7f, upSensitivity * sidewaysSensitivity * 0.6f, m_AvoidanceLayers)); // up/left
+            sensors.Add(new Sensor(transform.up + transform.right, false, 0, maxSpeed * 0.7f, upSensitivity * sidewaysSensitivity * 0.6f, m_AvoidanceLayers)); // up/right
 
-            sensors.Add(new Sensor(-transform.up, 0, m_OptimalHeight * 2, 0.1f, m_AvoidanceLayers)); // down
-            sensors.Add(new Sensor(-transform.up - transform.right, 0, m_MinHeight * 0.5f, 0.3f, m_AvoidanceLayers)); // down/left
-            sensors.Add(new Sensor(-transform.up + transform.forward, 0, m_MinHeight, 0.5f, m_AvoidanceLayers)); // down/forward
-            sensors.Add(new Sensor(-transform.up + transform.forward * 2, 0, m_MinHeight * 2, 0.2f, m_AvoidanceLayers)); // down/forward/forward
-            sensors.Add(new Sensor(-transform.up + transform.right, 0, m_MinHeight * 0.7f, 0.4f, m_AvoidanceLayers)); // down/right
+            sensors.Add(new Sensor(-transform.up, false, 0, m_OptimalHeight * 2, downSensitivity * 0.1f, m_AvoidanceLayers)); // down
+            sensors.Add(new Sensor(-transform.up - transform.right, false, 0, m_MinHeight * 0.5f, downSensitivity * sidewaysSensitivity * 0.3f, m_AvoidanceLayers)); // down/left
+            sensors.Add(new Sensor(-transform.up + transform.forward, false, 0, m_MinHeight, downSensitivity * 0.4f, m_AvoidanceLayers)); // down/forward
+            sensors.Add(new Sensor(-transform.up + transform.forward * 2, false, 0, m_MinHeight * 2, downSensitivity * 0.3f, m_AvoidanceLayers)); // down/forward/forward
+            sensors.Add(new Sensor(-transform.up + transform.right, false, 0, m_MinHeight * 0.7f, downSensitivity * sidewaysSensitivity * 0.3f, m_AvoidanceLayers)); // down/right
+
             sensorArray = sensors.ToArray();
         }
 
@@ -323,15 +340,15 @@ namespace WizardsCode.AI
                 if (GetInterimPointAdjustedForApproachHeight().y < rb.position.y 
                     && sensorArray[i].sensorDirection.y < 0)
                 {
-                    // skip downward sensors as they would result in a push back up as we are trying to go down.
-                    // note that forward and up sensors can still result in a small upward force depending on 
+                    // skip downward sensors as they would result in an undesirable push back up when we are trying to go down.
+                    // Forward and up sensors can still result in a small upward force depending on 
                     // the rotation of the body. This serves to force a levelling out as obstructions get nearer.
                     continue;
                 }
                 strength += sensorArray[i].lastObstructionRatio;
             }
 
-            return strength * Mathf.Clamp(strength.magnitude, 0, m_MaxAvoidanceLength);
+            return strength * Mathf.Clamp(strength.magnitude, 0, m_AvoidanceStrength);
         }
         void Start()
         {
@@ -481,8 +498,9 @@ namespace WizardsCode.AI
             // Keep the bottom facing down
             float z = rb.rotation.eulerAngles.z;
             if (z > 180f) z -= 360f;
-            float force = Mathf.Clamp(z / 45f, -1f, 1f) * m_MaxTorque;
+            float force = Mathf.Clamp(z / 90f, -1f, 1f) * m_MaxTorque;
             rb.AddTorque(rb.transform.forward * -force);
+            Debug.Log($"Torque force: {force}");
 
             ApplyForces(moveDirection);
         }
@@ -497,30 +515,26 @@ namespace WizardsCode.AI
             Vector3 desiredDirection = (destination.position - rb.position);
             if (desiredDirection.sqrMagnitude > approachDistanceSqr)
             {
-                if (DestinationHeight > m_OptimalHeight)
+                if (DestinationHeight < m_OptimalHeight)
                 {
-                    interimDestination.y = destination.position.y;
-                }
-                else
-                {
-                    interimDestination.y = m_OptimalHeight;
+                    interimDestination.y = (interimDestination.y - GetObstructionHeight(interimDestination)) + m_OptimalHeight;
                 }
             }
             else if (m_AutoLand && desiredDirection.sqrMagnitude > prepareToLandDistanceSqr)
             {
                 if (DestinationHeight < m_MinHeight)
                 {
-                    interimDestination.y = m_MinHeight;
+                    interimDestination.y = (interimDestination.y - GetObstructionHeight(interimDestination)) + m_MinHeight;
                 }
             }
             else if (m_AutoLand && desiredDirection.sqrMagnitude > landingDistanceSqr)
             {
                 if (DestinationHeight < m_LandingHeight)
                 {
-                    interimDestination.y = destination.position.y;
+                    interimDestination.y = (interimDestination.y - GetObstructionHeight(interimDestination)) + m_LandingHeight;
                 }
             }
-            else if (m_AutoLand && destination.position.y < m_LandingHeight)
+            else if (m_AutoLand && DestinationHeight < m_LandingHeight)
             {
                 interimDestination.y = Mathf.Lerp(m_LandingHeight + destination.position.y, destination.position.y, Time.fixedDeltaTime);
                 isLanding = true;
@@ -645,6 +659,11 @@ namespace WizardsCode.AI
             {
                 for (int i = 0; i < sensorArray.Length; i++)
                 {
+                    Gizmos.color = Color.white;
+                    Vector3 interimPoint = GetInterimPointAdjustedForApproachHeight();
+                    Gizmos.DrawSphere(interimPoint, 0.5f);
+                    Gizmos.DrawLine(rb.transform.position, interimPoint);
+
                     Vector3 direction = rb.transform.TransformDirection(sensorArray[i].sensorDirection);
                     float length = Mathf.Lerp(0, sensorArray[i].maxLength, Mathf.Clamp01(rb.velocity.magnitude / maxSpeed));
 
@@ -697,6 +716,8 @@ namespace WizardsCode.AI
 
         public float avoidanceSensitivity = 0.6f;
 
+        public bool rotateWithRigidbody = true;
+
         private LayerMask avoidanceLayers;
         internal Vector3 lastObstructionRatio
         {
@@ -713,17 +734,10 @@ namespace WizardsCode.AI
                 }
             }
         }
-
-        public Sensor(Vector3 direction, float radius, float maxLength, LayerMask avoidanceLayers) {
-            this.sensorDirection = direction;
-            this.radius = radius;
-            this.maxLength = maxLength;
-            this.avoidanceLayers = avoidanceLayers;
-        }
-
-        public Sensor(Vector3 direction, float radius, float maxLength, float avoidanceSensitivity, LayerMask avoidanceLayers)
+        public Sensor(Vector3 direction, bool rotateWithRigidbody, float radius, float maxLength, float avoidanceSensitivity, LayerMask avoidanceLayers)
         {
             this.sensorDirection = direction;
+            this.rotateWithRigidbody = rotateWithRigidbody;
             this.radius = radius;
             this.maxLength = maxLength;
             this.avoidanceSensitivity = avoidanceSensitivity;
@@ -737,7 +751,14 @@ namespace WizardsCode.AI
         /// </summary>
         public bool Pulse(FlyingSteeringRig rig)
         {
-            Vector3 direction = rig.rb.transform.TransformDirection(this.sensorDirection);
+            Vector3 direction;
+            if (rotateWithRigidbody)
+            {
+                direction = rig.rb.transform.TransformDirection(this.sensorDirection);
+            } else
+            {
+                direction = sensorDirection;
+            }
             float length = Mathf.Lerp(0, maxLength, Mathf.Clamp01(rig.rb.velocity.magnitude / rig.maxSpeed));
 
             Ray ray = new Ray(rig.rb.transform.position, direction);

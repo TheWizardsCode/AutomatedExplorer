@@ -188,9 +188,11 @@ namespace WizardsCode.AI
             {
                 OnWaypointArrival();
 
-                Vector3 pos = -transform.forward * Random.Range(2.5f, 3.5f);
-                pos += transform.right * Random.Range(-0.5f, -0.5f);
-                pos += transform.up * Random.Range(0.5f, 1f);
+                Vector3 pos = -transform.forward * Random.Range(m_waypointPrefab.ClearRadius * 3, m_waypointPrefab.ClearRadius * 4);
+                pos += transform.right * Random.Range(-m_waypointPrefab.ClearRadius / 2, -m_waypointPrefab.ClearRadius);
+                pos += transform.up * Random.Range(-m_waypointPrefab.ClearRadius / 2, -m_waypointPrefab.ClearRadius);
+                pos.y += 10; // ensuring we are above the terrain
+                pos.y = m_SteeringRig.GetObstructionHeight(pos) + m_waypointPrefab.ClearRadius;
 
                 GameObject go = Instantiate(m_waypointPrefab.gameObject, transform.position + pos, Quaternion.identity);
                 go.name = stuckWaypointName;
