@@ -643,6 +643,8 @@ namespace WizardsCode.AI
             m_Animator.SetFloat(AnimationHash.verticalVelocity, verticalVelocity);
             m_Animator.SetFloat(AnimationHash.forwardVelocity, forwardVelocity);
             m_Animator.SetBool(AnimationHash.glide, glide);
+
+            m_Animator.SetFloat(AnimationHash.speed, Mathf.Clamp((rb.velocity.magnitude / m_MaxSpeed) * 1.6f, 0.9f, 1.8f));
         }
 
         private void OnDrawGizmosSelected()
@@ -780,6 +782,8 @@ namespace WizardsCode.AI
         internal static class AnimationHash
         {
             #region parameters
+            internal static int speed = Animator.StringToHash("speed");
+
             internal static int isGrounded = Animator.StringToHash("isGrounded");
             internal static int isTakingOff= Animator.StringToHash("isTakingOff");
             internal static int isLanding = Animator.StringToHash("isLanding");
