@@ -203,6 +203,8 @@ namespace WizardsCode.AI
 
         private Transform cachedDestination;
         private float cachedDestinationHeight;
+        private Vector3 oldRepulsion;
+
         /// <summary>
         /// Returns the height of the current destination relative to the nearest obstacle below it.
         /// </summary>
@@ -316,7 +318,7 @@ namespace WizardsCode.AI
         /// <summary>
         /// Get a direction that will push the object away from detected obstacles.
         /// 
-        /// <param name="updateAllSensors">If true then all sensors will be updated immediately. Use this if you need very accurate avoidance. Othersie leave as the default false.</param>
+        /// <param name="updateAllSensors">If true then all sensors will be updated immediately. Use this if you need very accurate avoidance. Othersie leave as the default - false.</param>
         /// </summary>
         Vector3 GetRepulsionDirection(bool updateAllSensors = false)
         {
@@ -476,7 +478,8 @@ namespace WizardsCode.AI
                 moveDirection += desiredDirection;
             }
 
-            Vector3 repulsion = GetRepulsionDirection();
+            Vector3 repulsion = Vector3.Lerp(oldRepulsion, GetRepulsionDirection(), Time.deltaTime);
+            oldRepulsion = repulsion;
             if (repulsion.sqrMagnitude > 0.01f)
             {
                 moveDirection += repulsion.normalized;
@@ -498,9 +501,8 @@ namespace WizardsCode.AI
             // Keep the bottom facing down
             float z = rb.rotation.eulerAngles.z;
             if (z > 180f) z -= 360f;
-            float force = Mathf.Clamp(z / 90f, -1f, 1f) * m_MaxTorque;
+            float force = Mathf.Clamp(z / 20f, -1f, 1f) * m_MaxTorque;
             rb.AddTorque(rb.transform.forward * -force);
-            Debug.Log($"Torque force: {force}");
 
             ApplyForces(moveDirection);
         }
