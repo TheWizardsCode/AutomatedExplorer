@@ -501,7 +501,7 @@ namespace WizardsCode.AI
             // Keep the bottom facing down
             float z = rb.rotation.eulerAngles.z;
             if (z > 180f) z -= 360f;
-            float force = Mathf.Clamp(z / 20f, -1f, 1f) * m_MaxTorque;
+            float force = Mathf.Clamp(z / 120f, -1f, 1f) * m_MaxTorque;
             rb.AddTorque(rb.transform.forward * -force);
 
             ApplyForces(moveDirection);
