@@ -197,7 +197,7 @@ namespace WizardsCode.AI
         {
             get
             {
-                return GetObstructionHeight(rb.position);
+                return GetObstructionHeight(rb.transform.position);
             }
         }
 
@@ -254,13 +254,13 @@ namespace WizardsCode.AI
 
             ConfigureSensors();
             
-            float landingDistance = m_ArrivalDistance * 5f;
+            float landingDistance = m_ArrivalDistance * 3f;
             landingDistanceSqr = landingDistance * landingDistance;
             
             float prepareToLandDistance = landingDistance * 4f;
             prepareToLandDistanceSqr = prepareToLandDistance * prepareToLandDistance;
 
-            float approachDistance = landingDistance * 6f;
+            float approachDistance = landingDistance * 20f;
             approachDistanceSqr = approachDistance * approachDistance;
         }
 
@@ -339,10 +339,12 @@ namespace WizardsCode.AI
                     sensorArray[i].Pulse(this);
                 }
 
-                if (GetInterimPointAdjustedForApproachHeight().y < rb.position.y 
-                    && sensorArray[i].sensorDirection.y < 0)
+                if (sensorArray[i].sensorDirection.y < 0
+                    && Vector3.SqrMagnitude(rb.transform.position - destination.position) < approachDistanceSqr
+                    && destination.position.y < rb.transform.position.y)
                 {
-                    // skip downward sensors as they would result in an undesirable push back up when we are trying to go down.
+                    // skip downward sensors when approaching a destination that is below the current position
+                    // as they would result in an undesirable push back up when we are trying to go down.
                     // Forward and up sensors can still result in a small upward force depending on 
                     // the rotation of the body. This serves to force a levelling out as obstructions get nearer.
                     continue;
@@ -350,7 +352,9 @@ namespace WizardsCode.AI
                 strength += sensorArray[i].lastObstructionRatio;
             }
 
-            return strength * Mathf.Clamp(strength.magnitude, 0, m_AvoidanceStrength);
+            Vector3 repulsion = strength * Mathf.Clamp(strength.magnitude, 0, m_AvoidanceStrength);
+            Debug.Log($"Repulsion direction is {repulsion}");
+            return repulsion;
         }
         void Start()
         {
@@ -428,6 +432,8 @@ namespace WizardsCode.AI
             {
                 isLanding = false;
                 isGrounded = true;
+                //m_Agent.enabled = true;
+                //m_Agent.Warp(rb.transform.position);
                 m_TimeOfLastLanding = Time.timeSinceLevelLoad;
                 return;
             }
@@ -458,6 +464,8 @@ namespace WizardsCode.AI
             rb.AddTorque(rb.transform.right * -force);
 
             ApplyForces(moveDirection);
+
+            rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxSpeed / 10);
         }
 
         private void FlightPhysics()
@@ -486,7 +494,7 @@ namespace WizardsCode.AI
             }
             else
             {
-                moveDirection += repulsion * 100;
+                moveDirection += repulsion * 10;
             }
 
             // Rotate towards the desired direction
@@ -495,7 +503,7 @@ namespace WizardsCode.AI
             Quaternion desiredRotation = Quaternion.FromToRotation(rb.transform.forward, moveDirection);
             desiredRotation.ToAngleAxis(out angle, out axis);
             angle = angle > 180f ? angle - 360f : angle;
-            var torque = Mathf.Clamp(angle / 20f, -1f, 1f) * m_MaxTorque;
+            var torque = Mathf.Clamp(angle, -1f, 1f) * m_MaxTorque;
             rb.AddTorque(axis * torque);
 
             // Keep the bottom facing down
@@ -503,6 +511,8 @@ namespace WizardsCode.AI
             if (z > 180f) z -= 360f;
             float force = Mathf.Clamp(z / 120f, -1f, 1f) * m_MaxTorque;
             rb.AddTorque(rb.transform.forward * -force);
+
+            //Debug.Log($"Move direction is {moveDirection}, normalized is {moveDirection.normalized}");
 
             ApplyForces(moveDirection);
         }
@@ -514,31 +524,31 @@ namespace WizardsCode.AI
         private Vector3 GetInterimPointAdjustedForApproachHeight()
         {
             Vector3 interimDestination = destination.position;
-            Vector3 desiredDirection = (destination.position - rb.position);
-            if (desiredDirection.sqrMagnitude > approachDistanceSqr)
+            float desiredDirectionSqrMagnitude = (destination.position - rb.position).sqrMagnitude;
+            if (desiredDirectionSqrMagnitude > approachDistanceSqr)
             {
                 if (DestinationHeight < m_OptimalHeight)
                 {
-                    interimDestination.y = (interimDestination.y - GetObstructionHeight(interimDestination)) + m_OptimalHeight;
+                    interimDestination.y = GetObstructionHeight(destination.position) + m_OptimalHeight;
                 }
             }
-            else if (m_AutoLand && desiredDirection.sqrMagnitude > prepareToLandDistanceSqr)
+            else if (m_AutoLand && desiredDirectionSqrMagnitude > prepareToLandDistanceSqr)
             {
                 if (DestinationHeight < m_MinHeight)
                 {
-                    interimDestination.y = (interimDestination.y - GetObstructionHeight(interimDestination)) + m_MinHeight;
+                    interimDestination.y = GetObstructionHeight(destination.position) + m_MinHeight;
                 }
             }
-            else if (m_AutoLand && desiredDirection.sqrMagnitude > landingDistanceSqr)
+            else if (m_AutoLand && desiredDirectionSqrMagnitude > landingDistanceSqr)
             {
                 if (DestinationHeight < m_LandingHeight)
                 {
-                    interimDestination.y = (interimDestination.y - GetObstructionHeight(interimDestination)) + m_LandingHeight;
+                    interimDestination.y = GetObstructionHeight(destination.position) + m_LandingHeight;
                 }
             }
             else if (m_AutoLand && DestinationHeight < m_LandingHeight)
             {
-                interimDestination.y = Mathf.Lerp(m_LandingHeight + destination.position.y, destination.position.y, Time.fixedDeltaTime);
+                interimDestination.y = Mathf.Lerp(transform.position.y, destination.position.y, desiredDirectionSqrMagnitude / m_LandingHeight);
                 isLanding = true;
             }
 
@@ -554,15 +564,16 @@ namespace WizardsCode.AI
             // Vertical force to add
             float verticalForce = Mathf.Lerp(0, m_MaxVerticalForce, Mathf.Clamp01(moveDirection.normalized.y));
 
-            previousForwardForce = forwardForce;
-            previousVerticalForce = verticalForce;
-
             // Add the forces
+            //Debug.Log($"Forward force is {forwardForce}, vertical force is {verticalForce}.");
             rb.AddForce((Mathf.Lerp(previousForwardForce, forwardForce, Time.deltaTime) * moveDirection.normalized)
                 + (Mathf.Lerp(previousVerticalForce, verticalForce, Time.deltaTime) * rb.transform.up));
 
             // Don't go over maximum speed
             rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxSpeed);
+
+            previousForwardForce = forwardForce;
+            previousVerticalForce = verticalForce;
         }
 
         /// <summary>
@@ -592,7 +603,9 @@ namespace WizardsCode.AI
         {
             rb.freezeRotation = true;
 
-            if (m_TimeOfLastLanding + m_MinTimeOnGround < Time.timeSinceLevelLoad && Random.value <= 0.01) {
+            if (Vector3.SqrMagnitude(rb.transform.position - destination.position) > approachDistanceSqr 
+                && m_TimeOfLastLanding + m_MinTimeOnGround < Time.timeSinceLevelLoad 
+                && Random.value <= 0.01) {
                 TakeOff();
                 return;
             }
@@ -663,6 +676,17 @@ namespace WizardsCode.AI
             {
                 for (int i = 0; i < sensorArray.Length; i++)
                 {
+                    if (sensorArray[i].sensorDirection.y < 0
+                        && Vector3.SqrMagnitude(rb.transform.position - destination.position) < approachDistanceSqr
+                        && destination.position.y < rb.transform.position.y)
+                    {
+                        // skip downward sensors when approaching a destination that is below the current position
+                        // as they would result in an undesirable push back up when we are trying to go down.
+                        // Forward and up sensors can still result in a small upward force depending on 
+                        // the rotation of the body. This serves to force a levelling out as obstructions get nearer.
+                        continue;
+                    }
+
                     Gizmos.color = Color.white;
                     Vector3 interimPoint = GetInterimPointAdjustedForApproachHeight();
                     Gizmos.DrawSphere(interimPoint, 0.5f);
