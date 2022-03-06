@@ -353,7 +353,7 @@ namespace WizardsCode.AI
             }
 
             Vector3 repulsion = strength * Mathf.Clamp(strength.magnitude, 0, m_AvoidanceStrength);
-            Debug.Log($"Repulsion direction is {repulsion}");
+            //Debug.Log($"Repulsion direction is {repulsion}");
             return repulsion;
         }
         void Start()
@@ -529,21 +529,43 @@ namespace WizardsCode.AI
             {
                 if (DestinationHeight < m_OptimalHeight)
                 {
-                    interimDestination.y = GetObstructionHeight(destination.position) + m_OptimalHeight;
+                    float obstructionHeight = GetObstructionHeight(destination.position);
+                    if (obstructionHeight > 0)
+                    {
+                        interimDestination.y = obstructionHeight + m_OptimalHeight;
+                    }
+                    else
+                    {
+                        interimDestination.y += m_OptimalHeight;
+                    }
                 }
             }
             else if (m_AutoLand && desiredDirectionSqrMagnitude > prepareToLandDistanceSqr)
             {
                 if (DestinationHeight < m_MinHeight)
                 {
-                    interimDestination.y = GetObstructionHeight(destination.position) + m_MinHeight;
+                    float obstructionHeight = GetObstructionHeight(destination.position);
+                    if (obstructionHeight > 0)
+                    {
+                        interimDestination.y = obstructionHeight + m_MinHeight;
+                    } else
+                    {
+                        interimDestination.y += m_MinHeight;
+                    }
                 }
             }
             else if (m_AutoLand && desiredDirectionSqrMagnitude > landingDistanceSqr)
             {
                 if (DestinationHeight < m_LandingHeight)
                 {
-                    interimDestination.y = GetObstructionHeight(destination.position) + m_LandingHeight;
+                    float obstructionHeight = GetObstructionHeight(destination.position);
+                    if (obstructionHeight > 0) {
+                        interimDestination.y = obstructionHeight + m_LandingHeight;
+                    }
+                    else
+                    {
+                        interimDestination.y += m_LandingHeight;
+                    }
                 }
             }
             else if (m_AutoLand && DestinationHeight < m_LandingHeight)
