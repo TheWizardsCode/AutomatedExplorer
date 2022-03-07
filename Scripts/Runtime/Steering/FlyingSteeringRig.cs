@@ -215,16 +215,7 @@ namespace WizardsCode.AI
                 if (cachedDestination != destination)
                 {
                     cachedDestination = destination;
-
-                    RaycastHit hit;
-                    if (Physics.Raycast(destination.position, Vector3.down, out hit, Mathf.Infinity))
-                    {
-                        cachedDestinationHeight = hit.distance;
-                    }
-                    else
-                    {
-                        cachedDestinationHeight = 0;
-                    }
+                    cachedDestinationHeight = GetObstructionHeight(destination.position);
                 }
                 return cachedDestinationHeight;
             }
@@ -529,43 +520,21 @@ namespace WizardsCode.AI
             {
                 if (DestinationHeight < m_OptimalHeight)
                 {
-                    float obstructionHeight = GetObstructionHeight(destination.position);
-                    if (obstructionHeight > 0)
-                    {
-                        interimDestination.y = obstructionHeight + m_OptimalHeight;
-                    }
-                    else
-                    {
-                        interimDestination.y += m_OptimalHeight;
-                    }
+                    interimDestination.y += m_OptimalHeight;
                 }
             }
             else if (m_AutoLand && desiredDirectionSqrMagnitude > prepareToLandDistanceSqr)
             {
                 if (DestinationHeight < m_MinHeight)
                 {
-                    float obstructionHeight = GetObstructionHeight(destination.position);
-                    if (obstructionHeight > 0)
-                    {
-                        interimDestination.y = obstructionHeight + m_MinHeight;
-                    } else
-                    {
-                        interimDestination.y += m_MinHeight;
-                    }
+                    interimDestination.y += m_MinHeight;
                 }
             }
             else if (m_AutoLand && desiredDirectionSqrMagnitude > landingDistanceSqr)
             {
                 if (DestinationHeight < m_LandingHeight)
                 {
-                    float obstructionHeight = GetObstructionHeight(destination.position);
-                    if (obstructionHeight > 0) {
-                        interimDestination.y = obstructionHeight + m_LandingHeight;
-                    }
-                    else
-                    {
-                        interimDestination.y += m_LandingHeight;
-                    }
+                    interimDestination.y += m_LandingHeight;
                 }
             }
             else if (m_AutoLand && DestinationHeight < m_LandingHeight)
