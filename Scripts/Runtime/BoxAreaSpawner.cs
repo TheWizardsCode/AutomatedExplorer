@@ -112,7 +112,7 @@ namespace WizardsCode.Spawning
             if (nextSlot == -1) return; // No spawn slots available
             
             //OPTIMIZATION: Use a pool
-            WayPoint go = Instantiate(ToSpawn) as WayPoint;
+            WayPoint go = Instantiate(ToSpawn);
             go.name += instanceCount++;
 
             int nTrys = 0;
@@ -239,7 +239,7 @@ namespace WizardsCode.Spawning
             if (m_ShowAvailable || m_ShowUnavailable)
             {
                 //OPTIMIZATION: Use a cached sample object (See start of method as well)
-                WayPoint go = Instantiate(ToSpawn) as WayPoint;
+                WayPoint go = Instantiate(ToSpawn);
 
                 float depth = SizeX / 2;
                 float xInterval = Mathf.Max(0.3f, SizeX / 20);

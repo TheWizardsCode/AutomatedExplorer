@@ -12,8 +12,6 @@ namespace WizardsCode.AI
         enum SelectionStrategy { nearest, furthest, random };
 
         [Header("Sensors")]
-        [SerializeField, Tooltip("The waypoint prefab to use when getting the object to move out of a stuck state.")]
-        WayPoint m_waypointPrefab;
         [SerializeField, Tooltip("The range of the waypoint sensor this body has.")]
         float m_sensorRange = 200;
         [SerializeField, Tooltip("The layers on which waypoints will be detected by this body")]
@@ -30,6 +28,8 @@ namespace WizardsCode.AI
         float m_StuckDuration = 0.5f;
         [SerializeField, Tooltip("The tolerance to use when deciding if the item is stuck. If the object moves more than this distance in any direction in the `stuckDuration` then it will be considered to be moving.")]
         float m_StuckTolerance = 0.05f;
+        [SerializeField, Tooltip("The waypoint prefab to use when getting the object to move out of a stuck state.")]
+        WayPoint m_waypointPrefab;
 
         [Header("Arrival Behaviours")]
         [SerializeField, Tooltip("If you have [Photo Session](https://github.com/TheWizardsCode/PhotoSession) and this setting is true then a new photo will be taken each time the target reaches a waypoint. " +

@@ -11,6 +11,7 @@ namespace WizardsCode.AI
     /// or points of interest.
     /// 
     /// </summary>
+    [RequireComponent(typeof(Collider))]
     public class WayPoint : MonoBehaviour
     {
         [SerializeField, Tooltip("The radiues that will be tested for obstructions. If an obstruction is found within this radius then a new spawn point will be generated.")]
