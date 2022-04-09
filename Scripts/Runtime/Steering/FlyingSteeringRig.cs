@@ -185,8 +185,14 @@ namespace WizardsCode.AI
         {
             get 
             {
-                return m_Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == AnimationHash.flightState
-                    || m_Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == AnimationHash.glideState;
+                if (m_Animator)
+                {
+                    return m_Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == AnimationHash.flightState
+                        || m_Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == AnimationHash.glideState;
+                } else
+                {
+                    return true;
+                }
             }
         }
 
