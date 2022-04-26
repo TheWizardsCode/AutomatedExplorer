@@ -10,7 +10,7 @@ namespace WizardsCode.AI
 {
     /// <summary>
     /// This rig provides a 3D navigation for flying creatures and objects. It detects opstacles on the expected path an flies over
-    /// them or around them if it can. 
+    /// them or around them if it can.
     /// </summary>
     public class FlyingSteeringRig : AnimatorActorController
     {
@@ -98,8 +98,8 @@ namespace WizardsCode.AI
                 }
             }
         }
-        
-        
+
+
         /// <summary>
          /// Returns true if the body is currently on the ground.
          /// </summary>
@@ -183,7 +183,7 @@ namespace WizardsCode.AI
 
         public bool isFlying
         {
-            get 
+            get
             {
                 if (m_Animator)
                 {
@@ -250,10 +250,10 @@ namespace WizardsCode.AI
             base.Awake();
 
             ConfigureSensors();
-            
+
             float landingDistance = m_ArrivalDistance * 3f;
             landingDistanceSqr = landingDistance * landingDistance;
-            
+
             float prepareToLandDistance = landingDistance * 4f;
             prepareToLandDistanceSqr = prepareToLandDistance * prepareToLandDistance;
 
@@ -263,7 +263,7 @@ namespace WizardsCode.AI
 
         protected override void Update()
         {
-            if (isGrounded) base.Update();    
+            if (isGrounded) base.Update();
         }
 
         public override void MoveTo(Transform destination)
@@ -314,7 +314,7 @@ namespace WizardsCode.AI
 
         /// <summary>
         /// Get a direction that will push the object away from detected obstacles.
-        /// 
+        ///
         /// <param name="updateAllSensors">If true then all sensors will be updated immediately. Use this if you need very accurate avoidance. Othersie leave as the default - false.</param>
         /// </summary>
         Vector3 GetRepulsionDirection(bool updateAllSensors = false)
@@ -342,7 +342,7 @@ namespace WizardsCode.AI
                 {
                     // skip downward sensors when approaching a destination that is below the current position
                     // as they would result in an undesirable push back up when we are trying to go down.
-                    // Forward and up sensors can still result in a small upward force depending on 
+                    // Forward and up sensors can still result in a small upward force depending on
                     // the rotation of the body. This serves to force a levelling out as obstructions get nearer.
                     continue;
                 }
@@ -403,7 +403,7 @@ namespace WizardsCode.AI
                 {
                     GroundMovement();
                 }
-            } 
+            }
             else if (isTakingOff)
             {
                 // Take off is handled in the animation controller, so once we are flying we are good.
@@ -413,7 +413,7 @@ namespace WizardsCode.AI
             else if (isLanding)
             {
                 LandingPhysics();
-            } else 
+            } else
             {
                 FlightPhysics();
             }
@@ -437,7 +437,7 @@ namespace WizardsCode.AI
 
             Vector3 desiredDirection;
             Vector3 interimDestination = GetInterimPointAdjustedForApproachHeight();
-            
+
             desiredDirection = (interimDestination - rb.position);
             Vector3 moveDirection = Vector3.zero;
             if (desiredDirection.sqrMagnitude > 1)
@@ -555,8 +555,9 @@ namespace WizardsCode.AI
         private void ApplyForces(Vector3 moveDirection)
         {
             // Forward force to add
-            float forwardDotMove = Vector3.Dot(rb.transform.forward, moveDirection.normalized);
-            float forwardForce = Mathf.Lerp(m_MaxStrafeForce, m_MaxForwardForce, Mathf.Clamp01(forwardDotMove));
+            //float forwardDotMove = Vector3.Dot(rb.transform.forward, moveDirection.normalized);
+            //float forwardForce = Mathf.Lerp(m_MaxStrafeForce, m_MaxForwardForce, Mathf.Clamp01(forwardDotMove));
+            var forwardForce = m_MaxForwardForce;
 
             // Vertical force to add
             float verticalForce = Mathf.Lerp(0, m_MaxVerticalForce, Mathf.Clamp01(moveDirection.normalized.y));
@@ -579,8 +580,8 @@ namespace WizardsCode.AI
         private void TakeOff()
         {
             Vector3 repulsion = GetRepulsionDirection(true);
-            if (repulsion.y < 0) { 
-                return; 
+            if (repulsion.y < 0) {
+                return;
             }
 
             rb.freezeRotation = false;
@@ -600,8 +601,8 @@ namespace WizardsCode.AI
         {
             rb.freezeRotation = true;
 
-            if (Vector3.SqrMagnitude(rb.transform.position - destination.position) > approachDistanceSqr 
-                && m_TimeOfLastLanding + m_MinTimeOnGround < Time.timeSinceLevelLoad 
+            if (Vector3.SqrMagnitude(rb.transform.position - destination.position) > approachDistanceSqr
+                && m_TimeOfLastLanding + m_MinTimeOnGround < Time.timeSinceLevelLoad
                 && Random.value <= 0.01) {
                 TakeOff();
                 return;
@@ -679,7 +680,7 @@ namespace WizardsCode.AI
                     {
                         // skip downward sensors when approaching a destination that is below the current position
                         // as they would result in an undesirable push back up when we are trying to go down.
-                        // Forward and up sensors can still result in a small upward force depending on 
+                        // Forward and up sensors can still result in a small upward force depending on
                         // the rotation of the body. This serves to force a levelling out as obstructions get nearer.
                         continue;
                     }
@@ -690,7 +691,7 @@ namespace WizardsCode.AI
                     Gizmos.DrawLine(rb.transform.position, interimPoint);
 
                     Vector3 direction = rb.transform.TransformDirection(sensorArray[i].sensorDirection);
-                    float length = Mathf.Lerp(0, sensorArray[i].maxLength, Mathf.Clamp01(rb.velocity.magnitude / maxSpeed));
+                    float length = (rb.velocity.magnitude / maxSpeed) * sensorArray[i].maxLength; //Mathf.Lerp(0, sensorArray[i].maxLength, Mathf.Clamp01(rb.velocity.magnitude * maxSpeed));
 
                     Vector3 endPoint;
                     if (sensorArray[i].hit.collider == null)
@@ -706,7 +707,7 @@ namespace WizardsCode.AI
 
                     if (sensorArray[i].radius > 0)
                     {
-                        float currentRadius = Mathf.Lerp(0, sensorArray[i].radius, Mathf.Clamp01(rb.velocity.magnitude / maxSpeed));
+                        float currentRadius = Mathf.Lerp(0, sensorArray[i].radius, Mathf.Clamp01(rb.velocity.magnitude * maxSpeed));
                         Gizmos.DrawLine(rb.position, endPoint);
                         Gizmos.DrawWireSphere(endPoint, currentRadius);
                     }
@@ -731,7 +732,7 @@ namespace WizardsCode.AI
         /// The RaycastHit or null depending on whether the sensor hit anything on the last pulse
         /// </summary>
         public RaycastHit hit;
-        
+
         /// <summary>
         /// Direction relative to `transform.forward`.
         /// </summary>
@@ -784,12 +785,12 @@ namespace WizardsCode.AI
             {
                 direction = sensorDirection;
             }
-            float length = Mathf.Lerp(0, maxLength, Mathf.Clamp01(rig.rb.velocity.magnitude / rig.maxSpeed));
+            float length = Mathf.Lerp(0, maxLength, Mathf.Clamp01(rig.rb.velocity.magnitude * rig.maxSpeed));
 
             Ray ray = new Ray(rig.rb.transform.position, direction);
             if (radius > 0)
             {
-                float currentRadius = Mathf.Lerp(0, radius, Mathf.Clamp01(rig.rb.velocity.magnitude / rig.maxSpeed));
+                float currentRadius = Mathf.Lerp(0, radius, Mathf.Clamp01(rig.rb.velocity.magnitude * rig.maxSpeed));
                 obstructionHit = Physics.SphereCast(ray, currentRadius, out hit, length, avoidanceLayers);
             }
             else
