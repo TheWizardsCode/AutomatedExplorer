@@ -104,9 +104,10 @@ namespace WizardsCode.AI.Editor
             Terrain terrain = Terrain.activeTerrain;
             if (terrain != null)
             {
-                centerPos = terrain.terrainData.size;
-                centerPos.x = centerPos.x / 2;
-                centerPos.z = centerPos.z / 2;
+                Vector3 size = terrain.terrainData.size;
+                centerPos = terrain.transform.position;
+                centerPos.x = centerPos.x + (size.x / 2);
+                centerPos.z = centerPos.z + (size.x / 2);
                 centerPos.y = Terrain.activeTerrain.SampleHeight(centerPos);
             }
 
