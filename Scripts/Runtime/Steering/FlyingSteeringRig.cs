@@ -690,7 +690,7 @@ namespace WizardsCode.AI
                     Gizmos.DrawLine(rb.transform.position, interimPoint);
 
                     Vector3 direction = rb.transform.TransformDirection(sensorArray[i].sensorDirection);
-                    float length = Mathf.Lerp(0, sensorArray[i].maxLength, Mathf.Clamp01(rb.velocity.magnitude / maxSpeed));
+                    float length = (rb.velocity.magnitude / maxSpeed) * sensorArray[i].maxLength;
 
                     Vector3 endPoint;
                     if (sensorArray[i].hit.collider == null)
@@ -784,7 +784,7 @@ namespace WizardsCode.AI
             {
                 direction = sensorDirection;
             }
-            float length = Mathf.Lerp(0, maxLength, Mathf.Clamp01(rig.rb.velocity.magnitude / rig.maxSpeed));
+            float length = (rig.rb.velocity.magnitude / rig.maxSpeed) * maxLength;
 
             Ray ray = new Ray(rig.rb.transform.position, direction);
             if (radius > 0)
