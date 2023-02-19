@@ -750,8 +750,15 @@ namespace WizardsCode.AI
             {
                 if (obstructionHit)
                 {
-                    float obstructionRatio = Mathf.Pow(1f - (hit.distance / maxLength), 1f / avoidanceSensitivity);
-                    return obstructionRatio * hit.normal;
+                    if (maxLength > 0 && hit.distance < maxLength)
+                    {
+                        float obstructionRatio = Mathf.Pow(1f - (hit.distance / maxLength), 1f / avoidanceSensitivity);
+                        return obstructionRatio * hit.normal;
+                    }
+                    else
+                    {
+                        return Vector3.zero;
+                    }
                 }
                 else
                 {
