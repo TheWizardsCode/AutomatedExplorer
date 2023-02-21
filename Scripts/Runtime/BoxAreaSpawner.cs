@@ -4,13 +4,15 @@ using System;
 using Random = UnityEngine.Random;
 using System.Linq;
 using UnityEngine.Serialization;
+using WizardsCode.AI;
 
 namespace WizardsCode.Spawning
 {
     public class BoxAreaSpawner : MonoBehaviour
     {
+        //FIXME: generalize this so the spawner can be used for other items, not just WayPoints
         [SerializeField, Tooltip("The item we want to spawn using this spawner.")]
-        public GameObject ToSpawn;
+        public WayPoint ToSpawn;
         [SerializeField, Tooltip("The number of items to spawn at start.")]
         public int StartSpawnAmount;
         [SerializeField, Tooltip("The total number of items to have spawned. If an of the spawned items are destroyed then new ones will be spawned.")]
@@ -29,12 +31,12 @@ namespace WizardsCode.Spawning
         public float maxHeight = 7;
 
         [Header("Positioning")]
-        [SerializeField, Tooltip("If true then items spawned by this spawner will have their height adjusted to be within the mx height of the terrain height at the spawn coordinates.")]
-        public bool AdjustToTerrainHeight = true;
-        [SerializeField, Tooltip("If true then items spawned by this spawner will have their height adjusted to be within the mx height of the water surface if appropriate at the spawn coordinates. This setting overrides the AdjustToTerrainHeight where approrpiate, that is if this is true then the spawn point will be above water regardless of the size height of the terrain and the AsjustToTerrainHeight setting.")]
-        public bool SpawnAboveWater = true;
-        [SerializeField, Tooltip("The radiues that will be tested for obstructions. If an obstruction is found within this radius then a new spawn point will be generated.")]
-        public float ClearRadius = 1.8f;
+        [SerializeField, Tooltip("If true then items spawned by this spawner will have their height adjusted to be under the max height above the terrain or mesh objects at the coordinates.")]
+        [FormerlySerializedAs("AdjustToTerrainHeight")]
+        public bool AdjustHeight = true;
+        [SerializeField, Tooltip("Set to true if you want to allow spawn points below water. If false then items spawned by this spawner will have their height adjusted to be under the max height of the water surface if appropriate at the spawn coordinates. This setting overrides the AdjustToTerrainHeight where approrpiate, that is if this is false then the spawn point will be above water regardless of the size height of the terrain and the AsjustToTerrainHeight setting.")]
+        [FormerlySerializedAs("SpawnAboveWater")] // changed 1/29
+        public bool SpawnBelowWater = false;
         [SerializeField, Tooltip("The layers to look for obsructions when spawning.")]
         public LayerMask ObstructingLayers;
 
@@ -46,6 +48,7 @@ namespace WizardsCode.Spawning
 
         float spawnCountdown;
         GameObject[] spawned;
+        private int instanceCount;
 
         void Awake()
         {
@@ -62,7 +65,18 @@ namespace WizardsCode.Spawning
 
         void OnEnable()
         {
-            StartCoroutine(SpawnRoutine());
+            if (Application.isPlaying)
+            {
+                StartCoroutine(SpawnRoutine());
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (Application.isPlaying)
+            {
+                StopAllCoroutines();
+            }
         }
 
         IEnumerator SpawnRoutine()
@@ -96,6 +110,10 @@ namespace WizardsCode.Spawning
             spawnCountdown = SpawnInterval;
             var nextSlot = nextAvailableSlot;
             if (nextSlot == -1) return; // No spawn slots available
+            
+            //OPTIMIZATION: Use a pool
+            WayPoint go = Instantiate(ToSpawn);
+            go.name += instanceCount++;
 
             int nTrys = 0;
             Vector3 pos;
@@ -107,96 +125,101 @@ namespace WizardsCode.Spawning
                     Debug.LogWarning("Failed to find spawn location after 10 tries, aborting.", gameObject);
                     return;
                 }
-                pos = ChooseLocation();
-            } while (LocationIsObstructed(pos));
+                pos = ChooseLocation(go);
+            } while (LocationIsObstructed(pos, go));
 
-            var newInst = Instantiate(ToSpawn, pos, transform.rotation) as GameObject;
-            newInst.transform.SetParent(transform.parent);
-            spawned[nextSlot] = newInst;
+            go.transform.SetPositionAndRotation(pos, transform.rotation);
+            go.transform.SetParent(transform.parent);
+            spawned[nextSlot] = go.gameObject;
         }
 
-        Vector3 ChooseLocation()
+        /// <summary>
+        /// Shoose a suitable location for an object to spawn.
+        /// </summary>
+        /// <param name="go"></param>
+        /// <returns></returns>
+        Vector3 ChooseLocation(WayPoint go)
         {
             Vector3 dimensions = new Vector3(SizeX / 2f, maxHeight - minHeight, SizeZ / 2f);
-            Vector3 randNormalizedVector = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), Random.Range(-1f, 1f));
+            Vector3 randNormalizedVector = new Vector3(Random.Range(-1f, 1f), Random.Range(0, 1f), Random.Range(-1f, 1f));
             Vector3 pos = Vector3.Scale(dimensions, randNormalizedVector) + transform.position;
             pos.y += minHeight;
 
-            pos = GetHeightAdjusted(pos);
+            pos = GetHeightAdjusted(pos, go);
 
             return pos;
         }
 
         /// <summary>
-        /// Adjust the height of a position in the terrain to allow for any obstructions on the terrain.
+        /// Adjust the height of a position in the terrain or colliders below to allow for any obstructions on the terrain.
         /// </summary>
-        /// <param name="pos"></param>
+        /// <param name="pos">The approximate position the object should be placed</param>
+        /// <param name="go">The game object to place at the position</param>
         /// <returns></returns>
-        private Vector3 GetHeightAdjusted(Vector3 pos)
+        private Vector3 GetHeightAdjusted(Vector3 pos, WayPoint go)
         {
-            if (!AdjustToTerrainHeight && !SpawnAboveWater) return pos;
-            
-            float clearance = (ClearRadius * 1.05f);
+            if (!AdjustHeight && SpawnBelowWater) return pos;
 
-            if (AdjustToTerrainHeight)
+            float clearance;
+            if (go == null)
             {
-                Terrain terrain = null;
-                if (Terrain.activeTerrains.Length == 1)
-                {
-                    terrain = Terrain.activeTerrain;
-                }
-                else
-                {
-                    terrain = Terrain.activeTerrains.OrderBy(x =>
-                    {
-                        Vector3 terrainPosition = x.transform.position;
-                        Vector3 terrainSize = x.terrainData.size * 0.5f;
-                        Vector3 terrainCenter = new Vector3(terrainPosition.x + terrainSize.x, terrainPosition.y, terrainPosition.z + terrainSize.z);
-                        return Vector3.SqrMagnitude(terrainCenter - pos);
-                    }).First();
-                }
-
-                if (terrain != null)
-                {
-                    float terrainHeight = terrain.SampleHeight(pos);
-
-                    if (pos.y < terrainHeight + clearance)
-                    {
-                        pos.y = terrain.transform.position.y + terrainHeight + clearance;
-                    } else if (pos.y - terrainHeight > maxHeight)
-                    {
-                        pos.y = terrain.transform.position.y + Random.Range(terrainHeight + clearance, terrainHeight + maxHeight);
-                    }
-                }
-                else
-                {
-                    Debug.LogError($"No terrain found for {pos} while AdjustToTerrainheight is true.");
-                }
+                clearance = 0.2f;
+            }
+            else
+            {
+                clearance = (go.ClearRadius * 1.05f);
             }
 
-            if (SpawnAboveWater)
-            {
-                RaycastHit hit;
-                if (Physics.Raycast(pos, Vector3.up, out hit, Mathf.Infinity))
-                {
-                    float waterHeight = hit.distance;
+            RaycastHit hit;
+            float height = 0;
+            bool hasHit = false;
 
-                    if (pos.y < waterHeight + clearance)
+            while (!hasHit)
+            {
+                hasHit = Physics.Raycast(pos, Vector3.down, out hit, Mathf.Infinity);
+                if (hasHit)
+                {
+                    height = hit.distance;
+
+                    if (AdjustHeight)
                     {
-                        pos.y = waterHeight + clearance;
-                    } else if (pos.y - waterHeight > maxHeight)
-                    {
-                        pos.y = waterHeight + Random.Range(clearance, maxHeight);
+                        if (height + clearance < minHeight)
+                        {
+                            pos.y = hit.point.y + minHeight + clearance;
+                        }
+                        else if (height + clearance > maxHeight)
+                        {
+                            pos.y = hit.point.y + maxHeight - clearance;
+                        }
                     }
+
+                    if (!SpawnBelowWater)
+                    {
+                        float waterHeight = hit.distance;
+
+                        if (pos.y < waterHeight + clearance)
+                        {
+                            pos.y = waterHeight + clearance;
+                        }
+                        else if (pos.y - waterHeight > maxHeight)
+                        {
+                            pos.y = waterHeight + Random.Range(clearance, maxHeight);
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"{name} has `AdjustHeight` enabled but there is no raycast hit below {pos}. Trying again 10 meters higher.");
+                    pos.y += 10;
                 }
             }
 
             return pos;
         }
 
-        bool LocationIsObstructed(Vector3 location)
+        bool LocationIsObstructed(Vector3 location, WayPoint go)
         {
-            return Physics.CheckSphere(location, ClearRadius, ObstructingLayers);
+            return Physics.CheckSphere(location, go.ClearRadius, ObstructingLayers);
         }
 
         public void OnDrawGizmosSelected()
@@ -211,10 +234,13 @@ namespace WizardsCode.Spawning
 
             // Red sphere marking the center of the box
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(GetHeightAdjusted(transform.position), Mathf.Max(0.2f, ClearRadius));
+            Gizmos.DrawSphere(GetHeightAdjusted(transform.position, null), Mathf.Max(0.2f, 0.2f));
 
             if (m_ShowAvailable || m_ShowUnavailable)
             {
+                //OPTIMIZATION: Use a cached sample object (See start of method as well)
+                WayPoint go = Instantiate(ToSpawn);
+
                 float depth = SizeX / 2;
                 float xInterval = Mathf.Max(0.3f, SizeX / 20);
                 float height = maxHeight / 2;
@@ -230,13 +256,13 @@ namespace WizardsCode.Spawning
                         {
                             {
                                 Vector3 pos = transform.position + new Vector3(-width + x, -height + y, -depth + z);
-                                pos = GetHeightAdjusted(pos);
-                                if (m_ShowAvailable && !LocationIsObstructed(pos))
+                                pos = GetHeightAdjusted(pos, go);
+                                if (m_ShowAvailable && !LocationIsObstructed(pos, go))
                                 {
                                     Gizmos.color = Color.green;
                                     Gizmos.DrawSphere(pos, 0.2f);
                                 }
-                                else if (m_ShowUnavailable && LocationIsObstructed(pos))
+                                else if (m_ShowUnavailable && LocationIsObstructed(pos, go))
                                 {
                                     Gizmos.color = Color.red;
                                     Gizmos.DrawSphere(pos, 0.2f);
@@ -245,6 +271,9 @@ namespace WizardsCode.Spawning
                         }
                     }
                 }
+
+                //OPTIMIZATION: Use a cached sample object (See start of method as well)
+                DestroyImmediate(go);
             }
         }
     }

@@ -3,7 +3,7 @@
     "rootNamespace": "",
     "references": [
         "PhotoSession.Runtime",
-        "micosmo.sensortoolkit"
+        "WizardsCode.Character"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
