@@ -4,9 +4,13 @@ You can see this setup [in action](https://www.youtube.com/watch?v=94KWLLI9S3s).
 
 # Basic Setup
 
-Select `Tools -> Wizards Code -> AI -> Add Automated Explorer Camera`. This will add the various components to your scene as well as convert your camera to a Cinemachine camera. 
+* Set layer 30 to be "Waypoint"
+* Copy `Assets/AutomatedExplorer/_Explorers/Camera Only Config.asset` into your project and rename it to something relevant to you
+* Select `Tools -> Wizards Code -> AI -> Automated Explorer Window`. 
+* Add your config to the `Base Settings` in this window
+* Click `Configure the Scene`. This will add the necessary components (see below) to the scene and convert your camera to a Cinemcahine camera.
 
-# Camera Follow Target
+## Camera Follow Target
 
 This is the object that is moved around the scene, your camera will follow this object. You can add a model under this object (there is actually a sphere that is disabled by default as it can be helpful when debugging navigation). Attached to this object you will find:
 
