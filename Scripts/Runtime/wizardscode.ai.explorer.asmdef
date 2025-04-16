@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "PhotoSession.Runtime",
-        "WizardsCode.Character"
+        "WizardsCode.Character",
+        "Unity.Cinemachine"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

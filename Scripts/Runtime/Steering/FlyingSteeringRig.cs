@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using static WizardsCode.AI.Sensor;
 using WizardsCode.Character;
@@ -9,7 +8,7 @@ using Random = UnityEngine.Random;
 namespace WizardsCode.AI
 {
     /// <summary>
-    /// This rig provides a 3D navigation for flying creatures and objects. It detects opstacles on the expected path an flies over
+    /// This rig provides a 3D navigation for flying creatures and objects. It detects obstacles on the expected path an flies over
     /// them or around them if it can. 
     /// </summary>
     public class FlyingSteeringRig : AnimatorActorController
@@ -462,7 +461,7 @@ namespace WizardsCode.AI
 
             ApplyForces(moveDirection);
 
-            rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxSpeed / 10);
+            rb.linearVelocity = Vector3.ClampMagnitude(rb.linearVelocity, maxSpeed / 10);
         }
 
         private void FlightPhysics()
@@ -567,7 +566,7 @@ namespace WizardsCode.AI
                 + (Mathf.Lerp(previousVerticalForce, verticalForce, Time.deltaTime) * rb.transform.up));
 
             // Don't go over maximum speed
-            rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxSpeed);
+            rb.linearVelocity = Vector3.ClampMagnitude(rb.linearVelocity, maxSpeed);
 
             previousForwardForce = forwardForce;
             previousVerticalForce = verticalForce;
@@ -631,9 +630,9 @@ namespace WizardsCode.AI
             }
             float yaw = yawRad / 1.52f;
             float roll = rollRad / 3.14f;
-            float strafeVelocity = transform.InverseTransformDirection(rb.velocity).normalized.x;
-            float verticalVelocity = rb.velocity.normalized.y;
-            float forwardVelocity = transform.InverseTransformDirection(rb.velocity).normalized.z;
+            float strafeVelocity = transform.InverseTransformDirection(rb.linearVelocity).normalized.x;
+            float verticalVelocity = rb.linearVelocity.normalized.y;
+            float forwardVelocity = transform.InverseTransformDirection(rb.linearVelocity).normalized.z;
 
             bool glide = false;
             if (forwardVelocity > 0.9 && height > m_MinHeight)
@@ -654,7 +653,7 @@ namespace WizardsCode.AI
             m_Animator.SetFloat(AnimationHash.forwardVelocity, forwardVelocity);
             m_Animator.SetBool(AnimationHash.glide, glide);
 
-            m_Animator.SetFloat(AnimationHash.speed, Mathf.Clamp((rb.velocity.magnitude / m_MaxSpeed) * 1.6f, 0.9f, 1.8f));
+            m_Animator.SetFloat(AnimationHash.speed, Mathf.Clamp((rb.linearVelocity.magnitude / m_MaxSpeed) * 1.6f, 0.9f, 1.8f));
         }
 
         private void OnDrawGizmosSelected()
@@ -690,7 +689,7 @@ namespace WizardsCode.AI
                     Gizmos.DrawLine(rb.transform.position, interimPoint);
 
                     Vector3 direction = rb.transform.TransformDirection(sensorArray[i].sensorDirection);
-                    float length = (rb.velocity.magnitude / maxSpeed) * sensorArray[i].maxLength;
+                    float length = (rb.linearVelocity.magnitude / maxSpeed) * sensorArray[i].maxLength;
 
                     Vector3 endPoint;
                     if (sensorArray[i].hit.collider == null)
@@ -706,7 +705,7 @@ namespace WizardsCode.AI
 
                     if (sensorArray[i].radius > 0)
                     {
-                        float currentRadius = Mathf.Lerp(0, sensorArray[i].radius, Mathf.Clamp01(rb.velocity.magnitude / maxSpeed));
+                        float currentRadius = Mathf.Lerp(0, sensorArray[i].radius, Mathf.Clamp01(rb.linearVelocity.magnitude / maxSpeed));
                         Gizmos.DrawLine(rb.position, endPoint);
                         Gizmos.DrawWireSphere(endPoint, currentRadius);
                     }
@@ -791,12 +790,12 @@ namespace WizardsCode.AI
             {
                 direction = sensorDirection;
             }
-            float length = (rig.rb.velocity.magnitude / rig.maxSpeed) * maxLength;
+            float length = (rig.rb.linearVelocity.magnitude / rig.maxSpeed) * maxLength;
 
             Ray ray = new Ray(rig.rb.transform.position, direction);
             if (radius > 0)
             {
-                float currentRadius = Mathf.Lerp(0, radius, Mathf.Clamp01(rig.rb.velocity.magnitude / rig.maxSpeed));
+                float currentRadius = Mathf.Lerp(0, radius, Mathf.Clamp01(rig.rb.linearVelocity.magnitude / rig.maxSpeed));
                 obstructionHit = Physics.SphereCast(ray, currentRadius, out hit, length, avoidanceLayers);
             }
             else

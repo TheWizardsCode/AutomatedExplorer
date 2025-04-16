@@ -28,13 +28,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4066785948885321943}
+  serializedVersion: 2
   m_LocalRotation: {x: 0.06982614, y: 0, z: 0, w: 0.9975592}
   m_LocalPosition: {x: 45.03238, y: 67.877396, z: 109.42338}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4066785949307143924}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 8.008, y: 0, z: 0}
 --- !u!54 &4066785948885321940
 Rigidbody:
@@ -43,13 +44,24 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4066785948885321943}
-  serializedVersion: 2
-  m_Mass: 900
-  m_Drag: 2
-  m_AngularDrag: 2
+  serializedVersion: 4
+  m_Mass: 50
+  m_Drag: 10
+  m_AngularDrag: 200
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!114 &4066785948885321941
@@ -67,15 +79,14 @@ MonoBehaviour:
   m_sensorRange: 4000
   m_detectsOnLayers:
     serializedVersion: 2
-    m_Bits: 2147483648
+    m_Bits: 1073741824
   m_SelectionStrategy: 2
   m_SelectionRandomness: 0.594
   m_SteeringRig: {fileID: 8581328907137677944}
   m_StuckDuration: 0.75
   m_StuckTolerance: 0.2
-  m_waypointPrefab: {fileID: 6907383477543755845, guid: 4461efe13fc67904f8db2e5c8591aed0,
-    type: 3}
-  m_TakePhotoOnArrival: 1
+  m_waypointPrefab: {fileID: 6907383477543755845, guid: 4461efe13fc67904f8db2e5c8591aed0, type: 3}
+  m_TakePhotoOnArrival: 0
   m_AutoDisable: 0
   sqrDisableDistance: 1000
   m_EnabledCheckInterval: 2
@@ -88,9 +99,17 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4066785948885321943}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Radius: 0.05
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &8581328907137677944
@@ -112,7 +131,7 @@ MonoBehaviour:
   m_RunSpeedFactor: 0.8
   m_ArrivingDistance: 1
   m_LookAtTarget: {fileID: 0}
-  m_IsLookAtIKActive: 1
+  m_IsLookAtIKActive: 0
   head: {fileID: 0}
   m_LookAtSpeed: 6
   m_LookAtHeatTime: 0.2
@@ -121,26 +140,26 @@ MonoBehaviour:
   m_UseRootMotion: 0
   m_SpeedParameterName: forward
   m_TurnParameterName: turn
-  m_RunningSpeed: 8
+  m_RunningSpeed: 4
   isFootIKActive: 0
   rb: {fileID: 4066785948885321940}
   m_ArrivalDistance: 1.5
-  m_MaxTorque: 300
-  m_MaxStrafeForce: 500
-  m_MaxVerticalForce: 12000
-  m_MaxForwardForce: 15000
-  maxSpeed: 12
+  m_MaxTorque: 5
+  m_MaxStrafeForce: 300
+  m_MaxVerticalForce: 1000
+  m_MaxForwardForce: 90
+  maxSpeed: 5
   m_AvoidanceStrength: 0.3
   m_AvoidanceLayers:
     serializedVersion: 2
     m_Bits: 3073
-  m_MinHeight: 10
-  m_AutoLand: 1
+  m_MinHeight: 2
+  m_AutoLand: 0
   m_LandingHeight: 1.4
   m_MinTimeOnGround: 5
   m_GroundedHeight: 0.1
-  m_MaxHeight: 150
-  m_OptimalHeight: 40
+  m_MaxHeight: 10
+  m_OptimalHeight: 3
   m_MaxClimbAngle: 35
   m_MaxDiveAngle: 75
 --- !u!195 &157226751390477940
@@ -150,7 +169,7 @@ NavMeshAgent:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4066785948885321943}
-  m_Enabled: 1
+  m_Enabled: 0
   m_AgentTypeID: 0
   m_Radius: 0.5
   m_Speed: 3.5
@@ -190,12 +209,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4066785949307143925}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 3.964, z: 0}
   m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4066785948885321947}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4066785949307143930
 MeshFilter:
@@ -216,11 +236,15 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:

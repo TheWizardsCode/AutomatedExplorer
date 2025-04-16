@@ -1,4 +1,4 @@
-﻿using Cinemachine;
+﻿using Unity.Cinemachine;
 using UnityEngine;
 using UnityEditor;
 using WizardsCode.Spawning;
@@ -31,6 +31,12 @@ namespace WizardsCode.AI.Editor
             {
                 EditorGUILayout.HelpBox("Set an Explorer Config in order to continue.", MessageType.Warning);
                 return;
+            }
+
+            if (m_config != null)
+            {
+                UnityEditor.Editor editor = UnityEditor.Editor.CreateEditor(m_config);
+                editor.OnInspectorGUI();
             }
 
             if (GUILayout.Button("Configure the scene")) {
@@ -71,7 +77,7 @@ namespace WizardsCode.AI.Editor
             target.transform.position = centerPos;
 
             // Add Follow Cinemachine camera prefab
-            CinemachineVirtualCameraBase vcam = PrefabUtility.InstantiatePrefab(m_config.followVCam) as CinemachineVirtualCameraBase;
+            CinemachineCamera vcam = PrefabUtility.InstantiatePrefab(m_config.followVCam) as CinemachineCamera;
             vcam.gameObject.name = m_config.followVCam.name;
             vcam.LookAt = target.transform;
             vcam.Follow = target.transform;

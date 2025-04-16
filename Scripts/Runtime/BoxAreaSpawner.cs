@@ -209,7 +209,7 @@ namespace WizardsCode.Spawning
                 }
                 else
                 {
-                    Debug.LogWarning($"{name} has `AdjustHeight` enabled but there is no raycast hit below {pos}. Trying again 10 meters higher.");
+                        Debug.LogWarning($"{name} has `AdjustHeight` enabled but there is no raycast hit below {pos}. Trying again 10 meters higher.");
                     pos.y += 10;
                 }
             }

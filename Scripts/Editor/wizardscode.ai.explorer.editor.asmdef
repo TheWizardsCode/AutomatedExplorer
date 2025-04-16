@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "wizardscode.ai.explorer",
-        "Cinemachine"
+        "Unity.Cinemachine",
+        "Unity.Cinemachine.Editor"
     ],
     "includePlatforms": [
         "Editor"
